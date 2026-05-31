@@ -244,6 +244,11 @@
             <button class="btn-confirmar" onclick="confirmarTerceiro()">Confirmar encaminhamento</button>
           </div>
         ` + btnDevolver;
+      } else if (status === 'Aguardando CTIGI' || status === 'Aguardando SEFIN') {
+        area.innerHTML = `
+          <div style="text-align:center;padding:10px;"><span class="badge-aguardando">⏳ ${status}</span></div>
+          <button class="btn btn-retomar" style="background:#f9a825;color:#fff;margin-top:8px" onclick="registrarAcao('concluir')">✓ Resposta recebida — Concluir</button>
+        ` + btnDevolver;
       } else if (status === 'Concluído') {
         area.innerHTML = `<div style="text-align:center; color: var(--verde); font-weight:600; padding: 12px;">✓ Processo já concluído</div>
         <button class="btn" style="background:var(--cinza-borda);color:var(--texto);margin-top:8px" onclick="novaBusca()">🔄 Nova busca</button>`;
