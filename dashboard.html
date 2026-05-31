@@ -531,25 +531,28 @@ function calcularTempo(linha) {
   return '—';
 }
 
-function buscarHistorico() {
+async function buscarHistorico() {
   const num = document.getElementById('inputHistorico').value.trim();
   if (!num) return;
 
-  const normalizar = s => String(s).replace(/[.\-\/\s]/g, '');
-  const linhas = todosProcessos
-    .filter(p => normalizar(p.processo) === normalizar(num))
-    .sort((a, b) => {
+  const container = document.getElementById('resultadoHistorico');
+  container.innerHTML = '<div style="text-align:center;padding:2rem;color:#5a6472;font-size:14px;">Buscando...</div>';
+
+  try {
+    const urlHist = SCRIPT_URL + '?aba=Entradas-v2&acao=historico&processo=' + encodeURIComponent(num);
+    const respHist = await fetch(urlHist);
+    const dataHist = await respHist.json();
+
+    if (dataHist.status !== 'encontrado' || !dataHist.linhas.length) {
+      container.innerHTML = '<div style="text-align:center;padding:2rem;color:#5a6472;font-size:14px;">Processo não encontrado.</div>';
+      return;
+    }
+
+    const linhas = dataHist.linhas.sort((a, b) => {
       const da = parseBR(a.dataEnvio) || new Date(0);
       const db = parseBR(b.dataEnvio) || new Date(0);
       return da - db;
     });
-
-  const container = document.getElementById('resultadoHistorico');
-
-  if (!linhas.length) {
-    container.innerHTML = '<div style="text-align:center;padding:2rem;color:#5a6472;font-size:14px;">Processo não encontrado.</div>';
-    return;
-  }
 
   // Calcular tempo total
   const primeira = parseBR(linhas[0].dataEnvio);
