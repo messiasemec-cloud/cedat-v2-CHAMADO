@@ -554,69 +554,71 @@ async function buscarHistorico() {
       return da - db;
     });
 
-  // Calcular tempo total
-  const primeira = parseBR(linhas[0].dataEnvio);
-  let tempoTotalHTML = '';
-  const ultimaLinha = linhas[linhas.length - 1];
-  const hoje = new Date();
+    const primeira = parseBR(linhas[0].dataEnvio);
+    const ultimaLinha = linhas[linhas.length - 1];
+    const hoje = new Date();
 
-  // Calcular dias aguardando CTIGI/SEFIN
-  let diasAguardando = 0;
-  let orgAguardando = '';
-  linhas.forEach(l => {
-    if (l.status === 'Aguardando CTIGI' || l.status === 'Aguardando SEFIN') {
-      const dataEnv = parseBR(l.dataDevolucao) || parseBR(l.dataEnvio);
-      if (dataEnv) {
-        const fimRef = l.status === 'Aguardando CTIGI' || l.status === 'Aguardando SEFIN' ? hoje : parseBR(l.dataConclusao) || hoje;
-        diasAguardando += Math.round((fimRef - dataEnv) / (1000*60*60*24));
-        orgAguardando = l.status === 'Aguardando CTIGI' ? 'CTIGI' : 'SEFIN';
+    // Calcular dias aguardando CTIGI/SEFIN
+    let diasAguardando = 0;
+    let orgAguardando = '';
+    linhas.forEach(l => {
+      if (l.status === 'Aguardando CTIGI' || l.status === 'Aguardando SEFIN') {
+        const dataEnv = parseBR(l.dataDevolucao) || parseBR(l.dataEnvio);
+        if (dataEnv) {
+          diasAguardando += Math.round((hoje - dataEnv) / (1000*60*60*24));
+          orgAguardando = l.status === 'Aguardando CTIGI' ? 'CTIGI' : 'SEFIN';
+        }
       }
+    });
+    const sufixoAguardando = diasAguardando > 0
+      ? ` <span style="color:#7b3fa0;font-size:12px">(incluindo ${diasAguardando} dia${diasAguardando!==1?'s':''} aguardando ${orgAguardando})</span>`
+      : '';
+
+    let tempoTotalHTML = '';
+    if (ultimaLinha.status === 'Concluído' && parseBR(ultimaLinha.dataConclusao)) {
+      const dias = Math.round((parseBR(ultimaLinha.dataConclusao) - primeira) / (1000*60*60*24));
+      tempoTotalHTML = `<span style="color:#2e7d32;font-weight:600">✓ Concluído em ${dias} dia${dias!==1?'s':''} no total</span>${sufixoAguardando}`;
+    } else {
+      const dias = Math.round((hoje - primeira) / (1000*60*60*24));
+      tempoTotalHTML = `<span style="color:#e05020;font-weight:600">⏳ Em aberto há ${dias} dia${dias!==1?'s':''} no total</span>${sufixoAguardando}`;
     }
-  });
-  const sufixoAguardando = diasAguardando > 0 ? ` <span style="color:#7b3fa0;font-size:12px">(incluindo ${diasAguardando} dia${diasAguardando!==1?'s':''} aguardando ${orgAguardando})</span>` : '';
 
-  if (ultimaLinha.status === 'Concluído' && parseBR(ultimaLinha.dataConclusao)) {
-    const dias = Math.round((parseBR(ultimaLinha.dataConclusao) - primeira) / (1000*60*60*24));
-    tempoTotalHTML = `<span style="color:#2e7d32;font-weight:600">✓ Concluído em ${dias} dia${dias!==1?'s':''} no total</span>${sufixoAguardando}`;
-  } else {
-    const dias = Math.round((hoje - primeira) / (1000*60*60*24));
-    tempoTotalHTML = `<span style="color:#e05020;font-weight:600">⏳ Em aberto há ${dias} dia${dias!==1?'s':''} no total</span>${sufixoAguardando}`;
+    const rows = linhas.map((l, i) => `
+      <tr style="${i % 2 === 0 ? '' : 'background:#f9fafb'}">
+        <td style="padding:10px 14px;font-weight:600;color:#1a1f24;">${l.destinatario || '—'}</td>
+        <td style="padding:10px 14px;color:#5a6472;">${formatarData(l.dataEnvio)}</td>
+        <td style="padding:10px 14px;color:#1a1f24;">${l.tipo || '—'}</td>
+        <td style="padding:10px 14px;">${badgeStatusHistorico(l.status)}</td>
+        <td style="padding:10px 14px;">${calcularTempo(l)}</td>
+      </tr>`).join('');
+
+    container.innerHTML = `
+      <div style="background:#fff;border-radius:12px;border:1px solid #dde1e5;overflow:hidden;margin-bottom:1rem;">
+        <div style="background:#0a8a7a;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+          <span style="color:white;font-weight:600;font-size:15px;">Processo ${num}</span>
+          <span style="color:white;font-size:13px;">${tempoTotalHTML.replace(/style="color:[^"]*"/g, 'style="color:white"')}</span>
+        </div>
+        <div style="padding:12px 16px;background:#f0faf8;border-bottom:1px solid #dde1e5;font-size:13px;">${tempoTotalHTML}</div>
+        <div style="overflow-x:auto;">
+          <table style="width:100%;border-collapse:collapse;font-size:13px;">
+            <thead>
+              <tr style="background:#f4f5f6;">
+                <th style="padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:#5a6472;font-weight:600;">Responsável</th>
+                <th style="padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:#5a6472;font-weight:600;">Recebido em</th>
+                <th style="padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:#5a6472;font-weight:600;">Tipo</th>
+                <th style="padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:#5a6472;font-weight:600;">Status</th>
+                <th style="padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:#5a6472;font-weight:600;">Tempo</th>
+              </tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        </div>
+      </div>`;
+
+  } catch(e) {
+    container.innerHTML = '<div style="text-align:center;padding:2rem;color:#c62828;font-size:14px;">Erro ao buscar. Verifique a conexão.</div>';
   }
-
-  // Montar tabela
-  let rows = linhas.map((l, i) => `
-    <tr style="${i % 2 === 0 ? '' : 'background:#f9fafb'}">
-      <td style="padding:10px 14px;font-weight:600;color:#1a1f24;">${l.destinatario || '—'}</td>
-      <td style="padding:10px 14px;color:#5a6472;">${formatarData(l.dataEnvio)}</td>
-      <td style="padding:10px 14px;color:#1a1f24;">${l.tipo || '—'}</td>
-      <td style="padding:10px 14px;">${badgeStatusHistorico(l.status)}</td>
-      <td style="padding:10px 14px;">${calcularTempo(l)}</td>
-    </tr>`).join('');
-
-  container.innerHTML = `
-    <div style="background:#fff;border-radius:12px;border:1px solid #dde1e5;overflow:hidden;margin-bottom:1rem;">
-      <div style="background:#0a8a7a;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-        <span style="color:white;font-weight:600;font-size:15px;">Processo ${num}</span>
-        <span style="color:white;font-size:13px;">${tempoTotalHTML.replace(/style="color:[^"]*"/g, 'style="color:white"')}</span>
-      </div>
-      <div style="padding:12px 16px;background:#f0faf8;border-bottom:1px solid #dde1e5;font-size:13px;">${tempoTotalHTML}</div>
-      <div style="overflow-x:auto;">
-        <table style="width:100%;border-collapse:collapse;font-size:13px;">
-          <thead>
-            <tr style="background:#f4f5f6;">
-              <th style="padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:#5a6472;font-weight:600;">Responsável</th>
-              <th style="padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:#5a6472;font-weight:600;">Recebido em</th>
-              <th style="padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:#5a6472;font-weight:600;">Tipo</th>
-              <th style="padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:#5a6472;font-weight:600;">Status</th>
-              <th style="padding:10px 14px;text-align:left;font-size:11px;text-transform:uppercase;letter-spacing:0.04em;color:#5a6472;font-weight:600;">Tempo</th>
-            </tr>
-          </thead>
-          <tbody>${rows}</tbody>
-        </table>
-      </div>
-    </div>`;
 }
-
 carregarDados();
 setInterval(carregarDados, 300000);
 </script>
