@@ -206,7 +206,25 @@
       if (status === 'Pendente') {
         area.innerHTML = `<button class="btn btn-iniciar" onclick="registrarAcao('iniciar')">▶ Registrar início do trabalho</button>` + btnDevolver;
       } else if (status === 'Em andamento') {
-        area.innerHTML = `<button class="btn btn-concluir" onclick="registrarAcao('concluir')">✓ Confirmar conclusão</button>` + btnDevolver;
+        area.innerHTML = `
+          <button class="btn btn-concluir" onclick="registrarAcao('concluir')">✓ Confirmar conclusão</button>
+          <button class="btn btn-terceiro" onclick="togglePainelTerceiro()">📤 Encaminhar para terceiro</button>
+          <div class="painel-terceiro" id="painelTerceiro">
+            <h4>Encaminhar para terceiro</h4>
+            <label>Destino</label>
+            <select id="modalDestino" onchange="atualizarModal()">
+              <option value="CTIGI">CTIGI</option>
+              <option value="SEFIN">SEFIN</option>
+            </select>
+            <div id="campoProtocolo">
+              <label>Nº de protocolo</label>
+              <input type="text" id="modalProtocolo" placeholder="Ex: CTIGI-2026-12345" />
+            </div>
+            <label>Motivo do encaminhamento</label>
+            <textarea id="modalMotivo" placeholder="Descreva brevemente o motivo..."></textarea>
+            <button class="btn-confirmar" onclick="confirmarTerceiro()">Confirmar encaminhamento</button>
+          </div>
+        ` + btnDevolver;
       } else if (status === 'Concluído') {
         area.innerHTML = `<div style="text-align:center; color: var(--verde); font-weight:600; padding: 12px;">✓ Processo já concluído</div>
         <button class="btn" style="background:var(--cinza-borda);color:var(--texto);margin-top:8px" onclick="novaBusca()">🔄 Nova busca</button>`;
