@@ -260,7 +260,7 @@
 
       // Verifica duplicidade antes de salvar
       try {
-        const urlVerif = SCRIPT_URL + '?acao=verificar&processo=' + encodeURIComponent(processo);
+        const urlVerif = SCRIPT_URL + '?aba=Entradas-v2&acao=verificar&processo=' + encodeURIComponent(processo);
         const respVerif = await fetch(urlVerif);
         const dataVerif = await respVerif.json();
         if (dataVerif.status === 'bloqueado') {
@@ -280,7 +280,7 @@
         method: 'POST',
         mode: 'no-cors',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload)
+        body: JSON.stringify({...payload, aba: 'Entradas-v2'})
       });
       showFeedback('✓ Processo registrado com sucesso!', 'success');
       resetForm();

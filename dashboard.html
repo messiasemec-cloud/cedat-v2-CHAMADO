@@ -298,7 +298,7 @@ function criarBarras(id, labels, datasets) {
 async function carregarDados() {
   document.getElementById('atualizado-geral').textContent = 'Atualizando...';
   try {
-    const resp = await fetch(SCRIPT_URL + '?acao=dashboard');
+    const resp = await fetch(SCRIPT_URL + '?aba=Entradas-v2&acao=dashboard');
     const data = await resp.json();
     todosProcessos = data.processos || [];
     popularSelects();

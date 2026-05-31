@@ -225,7 +225,7 @@
       document.getElementById('resultado').style.display = 'none';
 
       try {
-        const url = SCRIPT_URL + '?acao=buscar&processo=' + encodeURIComponent(normalizar(num));
+        const url = SCRIPT_URL + '?aba=Entradas-v2&acao=buscar&processo=' + encodeURIComponent(normalizar(num));
         const resp = await fetch(url);
         const data = await resp.json();
 
@@ -258,7 +258,7 @@
       btns.forEach(b => { b.disabled = true; b.textContent = 'Registrando...'; });
 
       const agora = encodeURIComponent(new Date().toLocaleString('pt-BR'));
-      const url = SCRIPT_URL + '?acao=' + acao + '&linha=' + processoAtual.linha + '&data=' + agora;
+      const url = SCRIPT_URL + '?aba=Entradas-v2&acao=' + acao + '&linha=' + processoAtual.linha + '&data=' + agora;
 
       try {
         await fetch(url, { mode: 'no-cors' });
@@ -309,7 +309,7 @@
       const agora = encodeURIComponent(new Date().toLocaleString('pt-BR'));
       const prot = encodeURIComponent(protocolo);
       const mot = encodeURIComponent(motivo);
-      const url = SCRIPT_URL + '?acao=terceiro&linha=' + processoAtual.linha +
+      const url = SCRIPT_URL + '?aba=Entradas-v2&acao=terceiro&linha=' + processoAtual.linha +
         '&status=' + encodeURIComponent(novoStatus) + '&protocolo=' + prot + '&motivo=' + mot + '&data=' + agora;
 
       try {
@@ -328,7 +328,7 @@
       if (e.key === 'Enter') buscarProcesso();
     });
   </script>
-  <!-- MODAL ENCAMINHAR TERCEIRO -->
+<!-- MODAL ENCAMINHAR TERCEIRO -->
   <div class="modal-overlay" id="modalTerceiro">
     <div class="modal">
       <h3>Encaminhar para terceiro</h3>
