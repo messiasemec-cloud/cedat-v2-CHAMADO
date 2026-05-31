@@ -514,8 +514,11 @@ function calcularTempo(linha) {
   }
   if ((status === 'Aguardando CTIGI' || status === 'Aguardando SEFIN') && devolvido) {
     const dias = Math.round((new Date() - devolvido) / (1000*60*60*24));
-    const label = status === 'Aguardando CTIGI' ? 'CTIGI' : 'SEFIN';
-    return `<span style="color:#7b3fa0;font-weight:600">Aguardando ${label} há ${dias} dia${dias!==1?'s':''}</span>`;
+    if (status === 'Aguardando CTIGI') {
+      return `<span style="color:#7b3fa0;font-weight:600">Enviado à CTIGI há ${dias} dia${dias!==1?'s':''}</span>`;
+    } else {
+      return `<span style="color:#7b3fa0;font-weight:600">Enviado à SEFIN há ${dias} dia${dias!==1?'s':''}</span>`;
+    }
   }
   if (status === 'Em andamento' && iniciado) {
     const dias = Math.round((hoje - iniciado) / (1000*60*60*24));
