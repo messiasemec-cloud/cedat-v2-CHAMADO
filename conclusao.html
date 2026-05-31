@@ -111,12 +111,13 @@
             <div class="status-nome" id="nome2">Em andamento</div>
           </div>
           <div class="status-line" id="line2"></div>
-          <div class="status-step">
+          <div class="status-step" id="step3">
             <div class="status-circle" id="circle3">3</div>
-            <div class="status-nome" id="nome3">Aguardando</div>
+            <div class="status-nome" id="nome3">Concluído</div>
           </div>
-          <div class="status-line" id="line3"></div>
-          <div class="status-step">
+          <!-- Etapa extra só para CTIGI/SEFIN -->
+          <div class="status-line" id="line3" style="display:none"></div>
+          <div class="status-step" id="step4" style="display:none">
             <div class="status-circle" id="circle4">4</div>
             <div class="status-nome" id="nome4">Concluído</div>
           </div>
@@ -172,7 +173,7 @@
       setTimeout(() => { fb.style.display = 'none'; }, 6000);
     }
 
-    function atualizarTracker(status) {
+    function atualizarTracker(status, temTerceiro) {
       const c2 = document.getElementById('circle2');
       const c3 = document.getElementById('circle3');
       const c4 = document.getElementById('circle4');
@@ -182,37 +183,46 @@
       const l1 = document.getElementById('line1');
       const l2 = document.getElementById('line2');
       const l3 = document.getElementById('line3');
+      const step4 = document.getElementById('step4');
+
+      // Mostrar/esconder etapa 4 conforme necessário
+      const mostra4 = temTerceiro || status === 'Aguardando CTIGI' || status === 'Aguardando SEFIN';
+      l3.style.display = mostra4 ? '' : 'none';
+      step4.style.display = mostra4 ? '' : 'none';
 
       // Reset
-      [c2,c3,c4].forEach(c => { c.className = 'status-circle'; });
+      [c2,c3,c4].forEach(c => { c.className = 'status-circle'; c.textContent = c.id.replace('circle',''); });
       [n2,n3,n4].forEach(n => { n.className = 'status-nome'; });
-      [l1,l2,l3].forEach(l => { l.className = 'status-line'; });
+      [l1,l2,l3].forEach(l => { if(l.style.display !== 'none') l.className = 'status-line'; });
 
-      if (status === 'Pendente') {
-        // só o primeiro ativo
-      } else if (status === 'Em andamento') {
-        l1.className = 'status-line ativo';
-        c2.className = 'status-circle ativo';
-        n2.className = 'status-nome ativo';
-      } else if (status === 'Aguardando CTIGI' || status === 'Aguardando SEFIN') {
-        l1.className = 'status-line concluido';
-        l2.className = 'status-line ativo';
-        c2.className = 'status-circle concluido'; c2.textContent = '✓';
-        n2.className = 'status-nome concluido';
-        c3.className = 'status-circle ativo';
-        const org = status === 'Aguardando CTIGI' ? 'Ag. CTIGI' : 'Ag. SEFIN';
-        n3.textContent = org;
-        n3.className = 'status-nome ativo';
-      } else if (status === 'Concluído') {
-        l1.className = 'status-line concluido';
-        l2.className = 'status-line concluido';
-        l3.className = 'status-line concluido';
-        c2.className = 'status-circle concluido'; c2.textContent = '✓';
-        c3.className = 'status-circle concluido'; c3.textContent = '✓';
-        c4.className = 'status-circle concluido'; c4.textContent = '✓';
-        n2.className = 'status-nome concluido';
-        n3.className = 'status-nome concluido';
-        n4.className = 'status-nome concluido';
+      if (mostra4) {
+        // Tracker de 4 etapas
+        n3.textContent = status === 'Aguardando CTIGI' ? 'Ag. CTIGI' : status === 'Aguardando SEFIN' ? 'Ag. SEFIN' : 'Aguardando';
+        n4.textContent = 'Concluído';
+        if (status === 'Pendente') {
+        } else if (status === 'Em andamento') {
+          l1.className = 'status-line ativo'; c2.className = 'status-circle ativo'; n2.className = 'status-nome ativo';
+        } else if (status === 'Aguardando CTIGI' || status === 'Aguardando SEFIN') {
+          l1.className = 'status-line concluido'; l2.className = 'status-line ativo';
+          c2.className = 'status-circle concluido'; c2.textContent = '✓'; n2.className = 'status-nome concluido';
+          c3.className = 'status-circle ativo'; n3.className = 'status-nome ativo';
+        } else if (status === 'Concluído') {
+          l1.className = 'status-line concluido'; l2.className = 'status-line concluido'; l3.className = 'status-line concluido';
+          c2.className = 'status-circle concluido'; c2.textContent = '✓'; n2.className = 'status-nome concluido';
+          c3.className = 'status-circle concluido'; c3.textContent = '✓'; n3.className = 'status-nome concluido';
+          c4.className = 'status-circle concluido'; c4.textContent = '✓'; n4.className = 'status-nome concluido';
+        }
+      } else {
+        // Tracker de 3 etapas normal
+        n3.textContent = 'Concluído';
+        if (status === 'Pendente') {
+        } else if (status === 'Em andamento') {
+          l1.className = 'status-line ativo'; c2.className = 'status-circle ativo'; n2.className = 'status-nome ativo';
+        } else if (status === 'Concluído') {
+          l1.className = 'status-line concluido'; l2.className = 'status-line concluido';
+          c2.className = 'status-circle concluido'; c2.textContent = '✓'; n2.className = 'status-nome concluido';
+          c3.className = 'status-circle concluido'; c3.textContent = '✓'; n3.className = 'status-nome concluido';
+        }
       }
     }
 
@@ -281,7 +291,8 @@
           document.getElementById('r-conclusao').textContent = data.dataConclusao || '—';
 
           const status = data.statusProcesso || 'Pendente';
-          atualizarTracker(status);
+          const temTerceiro = status === 'Aguardando CTIGI' || status === 'Aguardando SEFIN';
+          atualizarTracker(status, temTerceiro);
           renderBotoes(status);
           document.getElementById('resultado').style.display = 'block';
         } else {
