@@ -280,6 +280,12 @@
       processoAtual = null;
     }
 
+    function togglePainelTerceiro() {
+      const painel = document.getElementById('painelTerceiro');
+      if (painel) painel.classList.toggle('aberto');
+      atualizarModal();
+    }
+
     function abrirModal() {
       document.getElementById('modalProtocolo').value = '';
       document.getElementById('modalMotivo').value = '';
