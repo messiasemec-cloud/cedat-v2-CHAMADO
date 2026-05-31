@@ -286,17 +286,7 @@
       atualizarModal();
     }
 
-    function abrirModal() {
-      document.getElementById('modalProtocolo').value = '';
-      document.getElementById('modalMotivo').value = '';
-      document.getElementById('modalDestino').value = 'CTIGI';
-      atualizarModal();
-      document.getElementById('modalTerceiro').classList.add('aberto');
-    }
 
-    function fecharModal() {
-      document.getElementById('modalTerceiro').classList.remove('aberto');
-    }
 
     function atualizarModal() {
       const destino = document.getElementById('modalDestino').value;
@@ -320,7 +310,7 @@
 
       try {
         await fetch(url, { mode: 'no-cors' });
-        fecharModal();
+        const p = document.getElementById('painelTerceiro'); if(p) p.classList.remove('aberto');
         showFeedback('📤 Encaminhado para ' + destino + ' com sucesso!', 'success');
         document.getElementById('resultado').style.display = 'none';
         document.getElementById('numProcesso').value = '';
@@ -335,26 +325,7 @@
     });
   </script>
 <!-- MODAL ENCAMINHAR TERCEIRO -->
-  <div class="modal-overlay" id="modalTerceiro">
-    <div class="modal">
-      <h3>Encaminhar para terceiro</h3>
-      <label>Destino</label>
-      <select id="modalDestino" onchange="atualizarModal()">
-        <option value="CTIGI">CTIGI</option>
-        <option value="SEFIN">SEFIN</option>
-      </select>
-      <div id="campoProtocolo">
-        <label>Nº de protocolo</label>
-        <input type="text" id="modalProtocolo" placeholder="Ex: CTIGI-2026-12345" />
-      </div>
-      <label>Motivo do encaminhamento</label>
-      <textarea id="modalMotivo" placeholder="Descreva brevemente o motivo..."></textarea>
-      <div class="modal-btns">
-        <button class="btn-cancelar" onclick="fecharModal()">Cancelar</button>
-        <button class="btn-confirmar" onclick="confirmarTerceiro()">Confirmar</button>
-      </div>
-    </div>
-  </div>
+
 
 </body>
 </html>
