@@ -237,9 +237,8 @@
       } else if (status === 'Em andamento') {
         area.innerHTML = `
           <button class="btn btn-concluir" onclick="registrarAcao('concluir')">✓ Confirmar conclusão</button>
-          <button class="btn btn-terceiro" onclick="togglePainelTerceiro()">📤 Encaminhar para terceiro</button>
+          <button class="btn btn-terceiro" id="btnTerceiro" onclick="acaoTerceiro()">📤 Encaminhar para terceiro</button>
           <div class="painel-terceiro" id="painelTerceiro">
-            <h4>Encaminhar para terceiro</h4>
             <label>Destino</label>
             <select id="modalDestino" onchange="atualizarModal()">
               <option value="CTIGI">CTIGI</option>
@@ -249,9 +248,8 @@
               <label>Nº de protocolo</label>
               <input type="text" id="modalProtocolo" placeholder="Ex: CTIGI-2026-12345" />
             </div>
-            <label>Motivo do encaminhamento</label>
-            <textarea id="modalMotivo" placeholder="Descreva brevemente o motivo..."></textarea>
-            <button class="btn-confirmar" onclick="confirmarTerceiro()">Confirmar encaminhamento</button>
+            <label>Motivo do encaminhamento <span style="color:#c62828">*</span></label>
+            <textarea id="modalMotivo" placeholder="Descreva brevemente o motivo..." oninput="verificarMotivo()"></textarea>
           </div>
         ` + btnDevolver;
       } else if (status === 'Aguardando CTIGI' || status === 'Aguardando SEFIN') {
@@ -333,10 +331,26 @@
       processoAtual = null;
     }
 
-    function togglePainelTerceiro() {
+    function acaoTerceiro() {
       const painel = document.getElementById('painelTerceiro');
-      if (painel) painel.classList.toggle('aberto');
-      atualizarModal();
+      if (!painel.classList.contains('aberto')) {
+        painel.classList.add('aberto');
+        atualizarModal();
+        document.getElementById('btnTerceiro').textContent = '📤 Confirmar encaminhamento';
+        return;
+      }
+      // Já aberto — confirmar se motivo preenchido
+      const motivo = document.getElementById('modalMotivo').value.trim();
+      if (!motivo) {
+        document.getElementById('modalMotivo').style.borderColor = '#c62828';
+        document.getElementById('modalMotivo').focus();
+        return;
+      }
+      confirmarTerceiro();
+    }
+
+    function verificarMotivo() {
+      document.getElementById('modalMotivo').style.borderColor = '#dde1e5';
     }
 
 
