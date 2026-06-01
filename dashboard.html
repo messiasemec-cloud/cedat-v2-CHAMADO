@@ -562,7 +562,7 @@ async function buscarHistorico() {
     let diasAguardando = 0;
     let orgAguardando = '';
     linhas.forEach(l => {
-      const dataEncaminhamento = parseBR(l.dataDevolucao);
+      const dataEncaminhamento = parseBR(l.dataEncaminhamento) || parseBR(l.dataDevolucao);
       if (!dataEncaminhamento) return;
 
       if (l.status === 'Aguardando CTIGI' || l.status === 'Aguardando SEFIN') {
@@ -576,7 +576,20 @@ async function buscarHistorico() {
         if (dias > 0) {
           diasAguardando += dias;
           // Detectar org pelo protocolo ou motivo
-          orgAguardando = l.protocolo && l.protocolo.includes('CTIGI') ? 'CTIGI' : 'SEFIN';
+          // Detectar organização pela melhor fonte disponível
+          if (l.destino) {
+            orgAguardando = l.destino;
+          } else if (l.status === 'Aguardando CTIGI') {
+            orgAguardando = 'CTIGI';
+          } else if (l.status === 'Aguardando SEFIN') {
+            orgAguardando = 'SEFIN';
+          } else if (l.protocolo && l.protocolo.toUpperCase().includes('CTIGI')) {
+            orgAguardando = 'CTIGI';
+          } else if (l.motivo && l.motivo.toLowerCase().includes('sefin')) {
+            orgAguardando = 'SEFIN';
+          } else {
+            orgAguardando = 'CTIGI';
+          }
         }
       }
     });
