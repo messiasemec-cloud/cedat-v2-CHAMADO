@@ -94,7 +94,10 @@
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <div class="btn-grupo">
           <button class="btn-filtro ativo" onclick="filtrarGeral('semana',this)">Esta semana</button>
-          <button class="btn-filtro" onclick="filtrarGeral('mes',this)">Este mês</button>
+          <button class="btn-filtro" id="btnMesGeral" onclick="filtrarGeral('mes',this)">Este mês</button>
+          <select id="selectMesGeral" onchange="filtrarGeralMes(this.value)" style="padding:6px 12px;border:1.5px solid var(--cinza-borda);border-radius:20px;font-size:13px;font-family:'Source Sans 3',sans-serif;outline:none;cursor:pointer;">
+            <option value="">Selecionar mês</option>
+          </select>
           <button class="btn-filtro" onclick="filtrarGeral('total',this)">Total</button>
         </div>
         <div class="separador"></div>
@@ -232,6 +235,7 @@ const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyuH_6JgwuINJXqy5gz4
 let todosProcessos = [];
 let charts = {};
 let periodoGeral = 'semana';
+let mesSelecionadoGeral = null;
 let periodoPessoa = 'semana';
 let periodoTipo = 'semana';
 
@@ -262,10 +266,14 @@ function filtrarPorPeriodo(lista, periodo) {
   if (periodo === 'total') return lista;
   const agora = new Date();
   return lista.filter(p => {
-    const d = new Date(p.dataEnvio);
-    if (isNaN(d)) return false;
+    const d = parseBR ? parseBR(p.dataEnvio) : new Date(p.dataEnvio);
+    if (!d || isNaN(d)) return false;
     if (periodo === 'semana') return d >= inicioSemana();
     if (periodo === 'mes') return d.getMonth() === agora.getMonth() && d.getFullYear() === agora.getFullYear();
+    if (periodo === 'mes_especifico' && mesSelecionadoGeral) {
+      const [ano, mes] = mesSelecionadoGeral.split('-').map(Number);
+      return d.getMonth() === mes - 1 && d.getFullYear() === ano;
+    }
     return true;
   });
 }
@@ -302,6 +310,7 @@ async function carregarDados() {
     const data = await resp.json();
     todosProcessos = data.processos || [];
     popularSelects();
+  popularMeses();
     renderGeral();
       renderPessoa();
     renderTipo();
@@ -309,6 +318,25 @@ async function carregarDados() {
   } catch(e) {
     document.getElementById('atualizado-geral').textContent = 'Erro ao carregar.';
   }
+}
+
+function popularMeses() {
+  const meses = new Set();
+  todosProcessos.forEach(p => {
+    const d = parseBR ? parseBR(p.dataEnvio) : new Date(p.dataEnvio);
+    if (d && !isNaN(d)) {
+      const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}`;
+      meses.add(key);
+    }
+  });
+  const sorted = [...meses].sort().reverse();
+  const nomesMeses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
+  const sel = document.getElementById('selectMesGeral');
+  sel.innerHTML = '<option value="">Selecionar mês</option>';
+  sorted.forEach(k => {
+    const [ano, mes] = k.split('-').map(Number);
+    sel.innerHTML += `<option value="${k}">${nomesMeses[mes-1]} ${ano}</option>`;
+  });
 }
 
 function popularSelects() {
@@ -336,8 +364,18 @@ function popularSelects() {
 // ── VISÃO GERAL ──────────────────────────────────────
 function filtrarGeral(p, el) {
   periodoGeral = p;
+  mesSelecionadoGeral = null;
   document.querySelectorAll('#painel-geral .btn-filtro').forEach(b => b.classList.remove('ativo'));
   el.classList.add('ativo');
+  document.getElementById('selectMesGeral').value = '';
+  renderGeral();
+}
+
+function filtrarGeralMes(val) {
+  if (!val) return;
+  mesSelecionadoGeral = val;
+  periodoGeral = 'mes_especifico';
+  document.querySelectorAll('#painel-geral .btn-filtro').forEach(b => b.classList.remove('ativo'));
   renderGeral();
 }
 
@@ -565,8 +603,11 @@ async function buscarHistorico() {
       const dataEncaminhamento = parseBR(l.dataEncaminhamento) || parseBR(l.dataDevolucao);
       if (!dataEncaminhamento) return;
 
-      // Detectar organização
-      const org = l.destino || (l.status === 'Aguardando SEFIN' ? 'SEFIN' : l.protocolo && l.protocolo.toUpperCase().includes('CTIGI') ? 'CTIGI' : 'CTIGI');
+      // Detectar organização — protocolo tem prioridade pois persiste após conclusão
+      const org = l.protocolo && l.protocolo.toUpperCase().includes('CTIGI') ? 'CTIGI'
+                : l.destino ? l.destino
+                : l.status === 'Aguardando SEFIN' ? 'SEFIN'
+                : 'CTIGI';
 
       if (l.status === 'Aguardando CTIGI' || l.status === 'Aguardando SEFIN') {
         diasAguardando += Math.round((hoje - dataEncaminhamento) / (1000*60*60*24));
