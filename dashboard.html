@@ -558,44 +558,29 @@ async function buscarHistorico() {
     const ultimaLinha = linhas[linhas.length - 1];
     const hoje = new Date();
 
-    // Calcular dias aguardando CTIGI/SEFIN
+    // Calcular dias aguardando resposta externa (coluna K preenchida)
     let diasAguardando = 0;
     let orgAguardando = '';
     linhas.forEach(l => {
       const dataEncaminhamento = parseBR(l.dataEncaminhamento) || parseBR(l.dataDevolucao);
       if (!dataEncaminhamento) return;
 
+      // Detectar organização
+      const org = l.destino || (l.status === 'Aguardando SEFIN' ? 'SEFIN' : l.protocolo && l.protocolo.toUpperCase().includes('CTIGI') ? 'CTIGI' : 'CTIGI');
+
       if (l.status === 'Aguardando CTIGI' || l.status === 'Aguardando SEFIN') {
-        // Em aberto — conta até hoje
         diasAguardando += Math.round((hoje - dataEncaminhamento) / (1000*60*60*24));
-        orgAguardando = l.status === 'Aguardando CTIGI' ? 'CTIGI' : 'SEFIN';
+        orgAguardando = org;
       } else if (l.status === 'Concluído' && parseBR(l.dataConclusao)) {
-        // Concluído mas passou pela TI/SEFIN — conta do encaminhamento até a conclusão
         const dc = parseBR(l.dataConclusao);
         const dias = Math.round((dc - dataEncaminhamento) / (1000*60*60*24));
-        if (dias > 0) {
-          diasAguardando += dias;
-          // Detectar org pelo protocolo ou motivo
-          // Detectar organização pela melhor fonte disponível
-          if (l.destino) {
-            orgAguardando = l.destino;
-          } else if (l.status === 'Aguardando CTIGI') {
-            orgAguardando = 'CTIGI';
-          } else if (l.status === 'Aguardando SEFIN') {
-            orgAguardando = 'SEFIN';
-          } else if (l.protocolo && l.protocolo.toUpperCase().includes('CTIGI')) {
-            orgAguardando = 'CTIGI';
-          } else if (l.motivo && l.motivo.toLowerCase().includes('sefin')) {
-            orgAguardando = 'SEFIN';
-          } else {
-            orgAguardando = 'CTIGI';
-          }
-        }
+        if (dias > 0) { diasAguardando += dias; orgAguardando = org; }
       }
     });
     const sufixoAguardando = diasAguardando > 0
-      ? ` <span style="color:#7b3fa0;font-size:12px">(incluindo ${diasAguardando} dia${diasAguardando!==1?'s':''} aguardando ${orgAguardando})</span>`
+      ? ` <span style="color:#7b3fa0;font-size:12px">(incluindo ${diasAguardando} dia${diasAguardando!==1?'s':''} aguardando ${orgAguardando || 'CTIGI'})</span>`
       : '';
+
 
     let tempoTotalHTML = '';
     if (ultimaLinha.status === 'Concluído' && parseBR(ultimaLinha.dataConclusao)) {
