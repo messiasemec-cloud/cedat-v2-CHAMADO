@@ -145,7 +145,9 @@
         </select>
         <div class="btn-grupo">
           <button class="btn-filtro ativo" onclick="filtrarPessoa('semana',this)">Esta semana</button>
-          <button class="btn-filtro" onclick="filtrarPessoa('mes',this)">Este mês</button>
+          <select id="selectMes_pessoa" onchange="filtrarMesAba('pessoa', this.value)" style="padding:6px 12px;border:1.5px solid var(--cinza-borda);border-radius:20px;font-size:13px;font-family:'Source Sans 3',sans-serif;outline:none;cursor:pointer;">
+            <option value="">Selecionar mês</option>
+          </select>
           <button class="btn-filtro" onclick="filtrarPessoa('total',this)">Total</button>
         </div>
       </div>
@@ -181,7 +183,9 @@
         </select>
         <div class="btn-grupo">
           <button class="btn-filtro ativo" onclick="filtrarTipo('semana',this)">Esta semana</button>
-          <button class="btn-filtro" onclick="filtrarTipo('mes',this)">Este mês</button>
+          <select id="selectMes_tipo" onchange="filtrarMesAba('tipo', this.value)" style="padding:6px 12px;border:1.5px solid var(--cinza-borda);border-radius:20px;font-size:13px;font-family:'Source Sans 3',sans-serif;outline:none;cursor:pointer;">
+            <option value="">Selecionar mês</option>
+          </select>
           <button class="btn-filtro" onclick="filtrarTipo('total',this)">Total</button>
         </div>
       </div>
@@ -236,6 +240,9 @@ let todosProcessos = [];
 let charts = {};
 let periodoGeral = 'semana';
 let mesSelecionadoGeral = null;
+let mesSelecionadoStatus = null;
+let mesSelecionadoPessoa = null;
+let mesSelecionadoTipo = null;
 let periodoPessoa = 'semana';
 let periodoTipo = 'semana';
 
@@ -262,7 +269,7 @@ function inicioSemana() {
   return seg;
 }
 
-function filtrarPorPeriodo(lista, periodo) {
+function filtrarPorPeriodo(lista, periodo, mesSel) {
   if (periodo === 'total') return lista;
   const agora = new Date();
   return lista.filter(p => {
@@ -270,8 +277,8 @@ function filtrarPorPeriodo(lista, periodo) {
     if (!d || isNaN(d)) return false;
     if (periodo === 'semana') return d >= inicioSemana();
     if (periodo === 'mes') return d.getMonth() === agora.getMonth() && d.getFullYear() === agora.getFullYear();
-    if (periodo === 'mes_especifico' && mesSelecionadoGeral) {
-      const [ano, mes] = mesSelecionadoGeral.split('-').map(Number);
+    if (periodo === 'mes_especifico' && mesSel) {
+      const [ano, mes] = mesSel.split('-').map(Number);
       return d.getMonth() === mes - 1 && d.getFullYear() === ano;
     }
     return true;
@@ -320,6 +327,14 @@ async function carregarDados() {
   }
 }
 
+function filtrarMesAba(aba, val) {
+  if (!val) return;
+  if (aba === 'geral') { mesSelecionadoGeral = val; periodoGeral = 'mes_especifico'; document.querySelectorAll('#painel-geral .btn-filtro').forEach(b => b.classList.remove('ativo')); renderGeral(); }
+  else if (aba === 'status') { mesSelecionadoStatus = val; periodoStatus = 'mes_especifico'; document.querySelectorAll('#painel-status .btn-filtro').forEach(b => b.classList.remove('ativo')); renderStatus(); }
+  else if (aba === 'pessoa') { mesSelecionadoPessoa = val; periodoPessoa = 'mes_especifico'; document.querySelectorAll('#painel-pessoa .btn-filtro').forEach(b => b.classList.remove('ativo')); renderPessoa(); }
+  else if (aba === 'tipo') { mesSelecionadoTipo = val; periodoTipo = 'mes_especifico'; document.querySelectorAll('#painel-tipo .btn-filtro').forEach(b => b.classList.remove('ativo')); renderTipo(); }
+}
+
 function popularMeses() {
   const meses = new Set();
   todosProcessos.forEach(p => {
@@ -331,12 +346,23 @@ function popularMeses() {
   });
   const sorted = [...meses].sort().reverse();
   const nomesMeses = ['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'];
-  const sel = document.getElementById('selectMesGeral');
-  sel.innerHTML = '<option value="">Selecionar mês</option>';
-  sorted.forEach(k => {
-    const [ano, mes] = k.split('-').map(Number);
-    sel.innerHTML += `<option value="${k}">${nomesMeses[mes-1]} ${ano}</option>`;
+  const sels = ['selectMesGeral','selectMes_status','selectMes_pessoa','selectMes_tipo'].map(id => document.getElementById(id)).filter(Boolean);
+  const agora = new Date();
+  const mesAtual = `${agora.getFullYear()}-${String(agora.getMonth()+1).padStart(2,'0')}`;
+  sels.forEach(sel => {
+    sel.innerHTML = '<option value="">Selecionar mês</option>';
+    sorted.forEach(k => {
+      const [ano, mes] = k.split('-').map(Number);
+      sel.innerHTML += `<option value="${k}">${nomesMeses[mes-1]} ${ano}</option>`;
+    });
+    // Selecionar mês atual por padrão
+    if (sorted.includes(mesAtual)) sel.value = mesAtual;
   });
+  // Aplicar mês atual em todas as abas
+  mesSelecionadoGeral = mesAtual; periodoGeral = 'mes_especifico';
+  mesSelecionadoStatus = mesAtual; periodoStatus = 'mes_especifico';
+  mesSelecionadoPessoa = mesAtual; periodoPessoa = 'mes_especifico';
+  mesSelecionadoTipo = mesAtual; periodoTipo = 'mes_especifico';
 }
 
 function popularSelects() {
@@ -380,7 +406,7 @@ function filtrarGeralMes(val) {
 }
 
 function renderGeral() {
-  const lista = filtrarPorPeriodo(todosProcessos, periodoGeral);
+  const lista = filtrarPorPeriodo(todosProcessos, periodoGeral, mesSelecionadoGeral);
   document.getElementById('totalEntradas').textContent = lista.length;
   document.getElementById('totalSaidas').textContent = lista.filter(p => p.status === 'Concluído').length;
   document.getElementById('totalAberto').textContent = lista.filter(p => ['Pendente','Em andamento','Aguardando CTIGI','Aguardando SEFIN'].includes(p.status)).length;
@@ -399,6 +425,9 @@ function renderGeral() {
 // ── POR PESSOA ───────────────────────────────────────
 function filtrarPessoa(p, el) {
   periodoPessoa = p;
+  mesSelecionadoPessoa = null;
+  const sel = document.getElementById('selectMes_pessoa');
+  if (sel) sel.value = '';
   document.querySelectorAll('#painel-pessoa .btn-filtro').forEach(b => b.classList.remove('ativo'));
   el.classList.add('ativo');
   atualizarTiposPessoa();
@@ -424,7 +453,7 @@ function renderPessoa() {
   const tipoSel = document.getElementById('selectPessoaTipo').value;
   if (!pessoa) return;
 
-  let lista = filtrarPorPeriodo(todosProcessos, periodoPessoa);
+  let lista = filtrarPorPeriodo(todosProcessos, periodoPessoa, mesSelecionadoPessoa);
   lista = lista.filter(p => p.destinatario === pessoa);
   if (tipoSel !== 'Todos') lista = lista.filter(p => p.tipo === tipoSel);
 
@@ -482,13 +511,16 @@ function renderPessoa() {
 // ── POR TIPO ─────────────────────────────────────────
 function filtrarTipo(p, el) {
   periodoTipo = p;
+  mesSelecionadoTipo = null;
+  const sel = document.getElementById('selectMes_tipo');
+  if (sel) sel.value = '';
   document.querySelectorAll('#painel-tipo .btn-filtro').forEach(b => b.classList.remove('ativo'));
   el.classList.add('ativo');
   renderTipo();
 }
 
 function renderTipo() {
-  const lista = filtrarPorPeriodo(todosProcessos, periodoTipo);
+  const lista = filtrarPorPeriodo(todosProcessos, periodoTipo, mesSelecionadoTipo);
   const tipoSel = document.getElementById('selectTipo').value;
   const listaFiltradaScore = tipoSel ? lista.filter(p => p.tipo === tipoSel) : lista;
   document.getElementById('tipoEntradas').textContent = listaFiltradaScore.length;
