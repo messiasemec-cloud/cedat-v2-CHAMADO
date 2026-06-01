@@ -254,7 +254,7 @@
             </select>
             <div id="campoProtocolo">
               <label>Nº de protocolo</label>
-              <input type="text" id="modalProtocolo" placeholder="Ex: CTIGI-2026-12345" />
+              <input type="text" id="modalProtocolo" placeholder="Ex: CTIGI-2026-12345" oninput="verificarProtocolo()" />
             </div>
             <label>Motivo do encaminhamento <span style="color:#c62828">*</span></label>
             <textarea id="modalMotivo" placeholder="Descreva brevemente o motivo..." oninput="verificarMotivo()"></textarea>
@@ -360,6 +360,9 @@
     function verificarMotivo() {
       document.getElementById('modalMotivo').style.borderColor = '#dde1e5';
     }
+    function verificarProtocolo() {
+      document.getElementById('modalProtocolo').style.borderColor = '#dde1e5';
+    }
 
 
 
@@ -374,7 +377,18 @@
       const protocolo = document.getElementById('modalProtocolo').value.trim();
       const motivo = document.getElementById('modalMotivo').value.trim();
 
-      if (!motivo) { alert('Informe o motivo do encaminhamento.'); return; }
+      if (destino === 'CTIGI' && !protocolo) {
+        document.getElementById('modalProtocolo').style.borderColor = '#c62828';
+        document.getElementById('modalProtocolo').focus();
+        showFeedback('Informe o número de protocolo da CTIGI.', 'error');
+        return;
+      }
+      if (!motivo) {
+        document.getElementById('modalMotivo').style.borderColor = '#c62828';
+        document.getElementById('modalMotivo').focus();
+        showFeedback('Informe o motivo do encaminhamento.', 'error');
+        return;
+      }
 
       const novoStatus = 'Aguardando ' + destino;
       const agora = encodeURIComponent(new Date().toLocaleString('pt-BR'));
