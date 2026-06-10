@@ -93,11 +93,11 @@
       <div class="painel-titulo">Visão geral</div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <div class="btn-grupo">
-          <button class="btn-filtro ativo" onclick="filtrarGeral('semana',this)">Esta semana</button>
+          <button class="btn-filtro" onclick="filtrarGeral('semana',this)">Esta semana</button>
           <select id="selectMesGeral" onchange="filtrarGeralMes(this.value)" style="padding:6px 12px;border:1.5px solid var(--cinza-borda);border-radius:20px;font-size:13px;font-family:'Source Sans 3',sans-serif;outline:none;cursor:pointer;">
             <option value="">Selecionar mês</option>
           </select>
-          <button class="btn-filtro" onclick="filtrarGeral('total',this)">Total</button>
+          <button class="btn-filtro ativo" onclick="filtrarGeral('total',this)">Total</button>
         </div>
         <div class="separador"></div>
         <div class="atualizado" id="atualizado-geral">Carregando...</div>
@@ -143,11 +143,11 @@
           <option value="Todos">Todos os tipos</option>
         </select>
         <div class="btn-grupo">
-          <button class="btn-filtro ativo" onclick="filtrarPessoa('semana',this)">Esta semana</button>
+          <button class="btn-filtro" onclick="filtrarPessoa('semana',this)">Esta semana</button>
           <select id="selectMes_pessoa" onchange="filtrarMesAba('pessoa', this.value)" style="padding:6px 12px;border:1.5px solid var(--cinza-borda);border-radius:20px;font-size:13px;font-family:'Source Sans 3',sans-serif;outline:none;cursor:pointer;">
             <option value="">Selecionar mês</option>
           </select>
-          <button class="btn-filtro" onclick="filtrarPessoa('total',this)">Total</button>
+          <button class="btn-filtro ativo" onclick="filtrarPessoa('total',this)">Total</button>
         </div>
       </div>
     </div>
@@ -171,6 +171,15 @@
         <div class="grafico-wrap"><canvas id="chartDiscoPessoa"></canvas></div>
       </div>
     </div>
+    <div class="graficos" style="margin-top:1rem;">
+      <div class="grafico-card full">
+        <div class="grafico-titulo">Entradas e saídas por tipo</div>
+        <div class="grafico-wrap" style="height:320px;"><canvas id="chartBarrasTipoPessoa"></canvas></div>
+        <p style="font-style:italic;font-size:11px;color:#5a6472;margin-top:8px;padding:0 8px;">
+          * Entradas = total de processos recebidos (visualizados + não visualizados). Saídas = processos concluídos.
+        </p>
+      </div>
+    </div>
   </div>
 
   <!-- POR TIPO -->
@@ -181,11 +190,11 @@
         <select id="selectTipo" onchange="renderTipo()">
         </select>
         <div class="btn-grupo">
-          <button class="btn-filtro ativo" onclick="filtrarTipo('semana',this)">Esta semana</button>
+          <button class="btn-filtro" onclick="filtrarTipo('semana',this)">Esta semana</button>
           <select id="selectMes_tipo" onchange="filtrarMesAba('tipo', this.value)" style="padding:6px 12px;border:1.5px solid var(--cinza-borda);border-radius:20px;font-size:13px;font-family:'Source Sans 3',sans-serif;outline:none;cursor:pointer;">
             <option value="">Selecionar mês</option>
           </select>
-          <button class="btn-filtro" onclick="filtrarTipo('total',this)">Total</button>
+          <button class="btn-filtro ativo" onclick="filtrarTipo('total',this)">Total</button>
         </div>
       </div>
     </div>
@@ -237,13 +246,13 @@
 const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyuH_6JgwuINJXqy5gz4_jpVIKVqTDnfdlu7YyMKRuFGVJzyto3kJhL2fzjlJaQOiHd0g/exec";
 let todosProcessos = [];
 let charts = {};
-let periodoGeral = 'semana';
+let periodoGeral = 'total';
 let mesSelecionadoGeral = null;
 let mesSelecionadoStatus = null;
 let mesSelecionadoPessoa = null;
 let mesSelecionadoTipo = null;
-let periodoPessoa = 'semana';
-let periodoTipo = 'semana';
+let periodoPessoa = 'total';
+let periodoTipo = 'total';
 
 // ── ABAS ─────────────────────────────────────────────
 function trocarAba(id, el) {
@@ -358,10 +367,10 @@ function popularMeses() {
     if (sorted.includes(mesAtual)) sel.value = mesAtual;
   });
   // Aplicar mês atual em todas as abas
-  mesSelecionadoGeral = mesAtual; periodoGeral = 'mes_especifico';
-  mesSelecionadoStatus = mesAtual; periodoStatus = 'mes_especifico';
-  mesSelecionadoPessoa = mesAtual; periodoPessoa = 'mes_especifico';
-  mesSelecionadoTipo = mesAtual; periodoTipo = 'mes_especifico';
+  // mesSelecionadoGeral = mesAtual; // inicia em Total
+  // mesSelecionadoStatus = mesAtual;
+  // mesSelecionadoPessoa = mesAtual;
+  // mesSelecionadoTipo = mesAtual;
 }
 
 function popularSelects() {
@@ -473,6 +482,33 @@ function renderPessoa() {
   Object.keys(charts).filter(k => k.startsWith('disco_')).forEach(k => { charts[k].destroy(); delete charts[k]; });
 
   destroyChart('chartDiscoPessoa');
+  destroyChart('chartBarrasTipoPessoa');
+
+  // Gráfico de barras por tipo — sempre mostra todos os tipos da pessoa (sem filtro de tipo)
+  const listaTodos = filtrarPorPeriodo(todosProcessos.filter(p => p.destinatario === pessoa), periodoPessoa, mesSelecionadoPessoa);
+  const tiposPessoa = [...new Set(listaTodos.map(p => p.tipo).filter(Boolean))].sort();
+  const entradasPorTipo = tiposPessoa.map(t => listaTodos.filter(p => p.tipo === t).length);
+  const saidasPorTipo = tiposPessoa.map(t => listaTodos.filter(p => p.tipo === t && p.status === 'Concluído').length);
+
+  const ctxBarras = document.getElementById('chartBarrasTipoPessoa').getContext('2d');
+  charts['chartBarrasTipoPessoa'] = new Chart(ctxBarras, {
+    type: 'bar',
+    data: {
+      labels: tiposPessoa.map(t => t.length > 30 ? t.substring(0,28)+'…' : t),
+      datasets: [
+        { label: 'Entradas', data: entradasPorTipo, backgroundColor: '#185FA5', borderRadius: 3 },
+        { label: 'Saídas', data: saidasPorTipo, backgroundColor: '#0a8a7a', borderRadius: 3 }
+      ]
+    },
+    options: {
+      responsive: true, maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 12 } } },
+      scales: {
+        x: { ticks: { font: { size: 10 }, maxRotation: 45 }, grid: { display: false } },
+        y: { ticks: { font: { size: 10 } }, grid: { color: '#e2e8f0' } }
+      }
+    }
+  });
   const ctx = document.getElementById('chartDiscoPessoa').getContext('2d');
   charts['chartDiscoPessoa'] = new Chart(ctx, {
     type: 'doughnut',
