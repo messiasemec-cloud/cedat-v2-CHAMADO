@@ -188,6 +188,7 @@
       <div class="painel-titulo">Por tipo</div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <select id="selectTipo" onchange="renderTipo()">
+          <option value="__todos__">Todos os tipos</option>
         </select>
         <div class="btn-grupo">
           <button class="btn-filtro" onclick="filtrarTipo('semana',this)">Esta semana</button>
@@ -215,12 +216,7 @@
         <div class="scorecard-sub">processos concluídos</div>
       </div>
     </div>
-    <div class="graficos">
-      <div class="grafico-card full">
-        <div class="grafico-titulo" id="tituloTipoBarras">Entradas vs Saídas</div>
-        <div class="grafico-wrap"><canvas id="chartTipoBarras"></canvas></div>
-      </div>
-    </div>
+    <div id="areaTipoGraficos"></div>
   </div>
 
   <!-- HISTÓRICO DO PROCESSO -->
@@ -384,9 +380,10 @@ function popularSelects() {
   const tipos = [...new Set(todosProcessos.map(p => p.tipo).filter(Boolean))].sort();
   const selT = document.getElementById('selectTipo');
   const valT = selT.value;
-  selT.innerHTML = '';
+  selT.innerHTML = '<option value="__todos__">Todos os tipos</option>';
   tipos.forEach(t => selT.innerHTML += `<option value="${t}">${t}</option>`);
   if (valT && tipos.includes(valT)) selT.value = valT;
+  else selT.value = '__todos__';
 
   const selPT = document.getElementById('selectPessoaTipo');
   const valPT = selPT.value;
@@ -557,10 +554,62 @@ function filtrarTipo(p, el) {
 function renderTipo() {
   const lista = filtrarPorPeriodo(todosProcessos, periodoTipo, mesSelecionadoTipo);
   const tipoSel = document.getElementById('selectTipo').value;
-  const listaFiltradaScore = tipoSel ? lista.filter(p => p.tipo === tipoSel) : lista;
+  const todos = tipoSel === '__todos__';
+  const listaFiltradaScore = todos ? lista : lista.filter(p => p.tipo === tipoSel);
   document.getElementById('tipoEntradas').textContent = listaFiltradaScore.length;
   document.getElementById('tipoSaidas').textContent = listaFiltradaScore.filter(p => p.status === 'Concluído').length;
-  document.getElementById('tipoAberto').textContent = listaFiltradaScore.filter(p => p.status === 'Pendente' || p.status === 'Em andamento').length;
+  document.getElementById('tipoAberto').textContent = listaFiltradaScore.filter(p => ['Pendente','Em andamento','Aguardando CTIGI','Aguardando SEFIN'].includes(p.status)).length;
+
+  // Destruir gráficos antigos
+  Object.keys(charts).filter(k => k.startsWith('chartTipo_')).forEach(k => { charts[k].destroy(); delete charts[k]; });
+  destroyChart('chartTipoBarras');
+  const area = document.getElementById('areaTipoGraficos');
+  area.innerHTML = '';
+
+  if (todos) {
+    // Agrupar todos os tipos de 5 em 5
+    const tiposDisp = [...new Set(lista.map(p => p.tipo).filter(Boolean))].sort();
+    const grupos = [];
+    for (let i = 0; i < tiposDisp.length; i += 5) grupos.push(tiposDisp.slice(i, i+5));
+
+    grupos.forEach((grupo, gi) => {
+      const id = 'chartTipo_' + gi;
+      const div = document.createElement('div');
+      div.className = 'graficos';
+      div.style.marginTop = '1rem';
+      div.innerHTML = `<div class="grafico-card full"><div class="grafico-titulo">Tipos ${gi*5+1}–${Math.min((gi+1)*5, tiposDisp.length)}</div><div class="grafico-wrap" style="height:280px;"><canvas id="${id}"></canvas></div></div>`;
+      area.appendChild(div);
+
+      const entradas = grupo.map(t => lista.filter(p => p.tipo === t).length);
+      const saidas = grupo.map(t => lista.filter(p => p.tipo === t && p.status === 'Concluído').length);
+      const ctx = document.getElementById(id).getContext('2d');
+      charts[id] = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: grupo.map(t => t.length > 35 ? t.substring(0,33)+'…' : t),
+          datasets: [
+            { label: 'Entradas', data: entradas, backgroundColor: '#185FA5', borderRadius: 3 },
+            { label: 'Saídas', data: saidas, backgroundColor: '#0a8a7a', borderRadius: 3 }
+          ]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { position: 'top', labels: { font: { size: 11 }, boxWidth: 12 } } },
+          scales: {
+            x: { ticks: { font: { size: 10 }, maxRotation: 40 }, grid: { display: false } },
+            y: { ticks: { font: { size: 10 } }, grid: { color: '#e2e8f0' }, beginAtZero: true }
+          }
+        }
+      });
+    });
+    return;
+  }
+
+  // Tipo específico — gráfico único
+  const divUnico = document.createElement('div');
+  divUnico.className = 'graficos';
+  divUnico.innerHTML = '<div class="grafico-card full"><div class="grafico-titulo" id="tituloTipoBarras">Entradas vs Saídas</div><div class="grafico-wrap"><canvas id="chartTipoBarras"></canvas></div></div>';
+  area.appendChild(divUnico);
 
   // Barras — tipo selecionado, entradas vs saídas simples
   const listaFiltrada = tipoSel ? lista.filter(p => p.tipo === tipoSel) : lista;
