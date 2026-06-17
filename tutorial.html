@@ -1,0 +1,846 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tutorial — Controle de Processos CEDAT</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Source+Code+Pro:wght@400;600&display=swap');
+
+  :root {
+    --verde: #0a8a7a;
+    --verde-esc: #076b5e;
+    --laranja: #e05020;
+    --roxo: #7b3fa0;
+    --azul: #185FA5;
+    --cinza-bg: #f4f5f6;
+    --cinza-borda: #dde1e5;
+    --texto: #1a1f24;
+    --texto-sec: #5a6472;
+    --branco: #ffffff;
+  }
+
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: 'Inter', sans-serif;
+    background: var(--cinza-bg);
+    color: var(--texto);
+    line-height: 1.6;
+  }
+
+  /* HEADER */
+  .header {
+    background: var(--verde-esc);
+    padding: 0;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.15);
+  }
+  .header-inner {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 14px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .header-titulo {
+    color: white;
+    font-size: 15px;
+    font-weight: 600;
+  }
+  .header-sub {
+    color: rgba(255,255,255,0.6);
+    font-size: 12px;
+  }
+  .progresso-bar {
+    height: 3px;
+    background: rgba(255,255,255,0.2);
+  }
+  .progresso-fill {
+    height: 100%;
+    background: var(--laranja);
+    transition: width 0.4s ease;
+    width: 0%;
+  }
+
+  /* HERO */
+  .hero {
+    background: linear-gradient(135deg, var(--verde-esc) 0%, #0d6e61 100%);
+    padding: 56px 24px 48px;
+    text-align: center;
+  }
+  .hero h1 {
+    color: white;
+    font-size: 28px;
+    font-weight: 700;
+    margin-bottom: 10px;
+  }
+  .hero p {
+    color: rgba(255,255,255,0.75);
+    font-size: 15px;
+    max-width: 520px;
+    margin: 0 auto 28px;
+  }
+  .hero-steps {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
+    flex-wrap: wrap;
+  }
+  .hero-step {
+    background: rgba(255,255,255,0.12);
+    border: 1px solid rgba(255,255,255,0.2);
+    border-radius: 20px;
+    padding: 6px 16px;
+    color: white;
+    font-size: 13px;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+  .hero-step:hover, .hero-step.ativo {
+    background: var(--laranja);
+    border-color: var(--laranja);
+  }
+
+  /* CONTAINER */
+  .container {
+    max-width: 900px;
+    margin: 0 auto;
+    padding: 32px 24px 80px;
+  }
+
+  /* SEÇÃO */
+  .secao {
+    margin-bottom: 48px;
+    scroll-margin-top: 80px;
+  }
+  .secao-header {
+    display: flex;
+    align-items: center;
+    gap: 14px;
+    margin-bottom: 20px;
+  }
+  .secao-num {
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    font-weight: 700;
+    color: white;
+    flex-shrink: 0;
+  }
+  .secao-titulo {
+    font-size: 20px;
+    font-weight: 700;
+    color: var(--texto);
+  }
+  .secao-desc {
+    font-size: 14px;
+    color: var(--texto-sec);
+    margin-top: 2px;
+  }
+
+  /* PASSO */
+  .passo {
+    background: white;
+    border-radius: 12px;
+    border: 1px solid var(--cinza-borda);
+    margin-bottom: 16px;
+    overflow: hidden;
+    transition: box-shadow 0.2s;
+  }
+  .passo:hover { box-shadow: 0 4px 16px rgba(0,0,0,0.08); }
+  .passo-header {
+    padding: 16px 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+    cursor: pointer;
+    user-select: none;
+  }
+  .passo-icon {
+    font-size: 22px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+  .passo-titulo {
+    font-size: 15px;
+    font-weight: 600;
+    color: var(--texto);
+    flex: 1;
+  }
+  .passo-subtitulo {
+    font-size: 12px;
+    color: var(--texto-sec);
+    margin-top: 2px;
+    font-weight: 400;
+  }
+  .passo-chevron {
+    color: var(--texto-sec);
+    font-size: 18px;
+    transition: transform 0.25s;
+    flex-shrink: 0;
+    margin-top: 2px;
+  }
+  .passo.aberto .passo-chevron { transform: rotate(180deg); }
+  .passo-corpo {
+    display: none;
+    padding: 0 20px 20px;
+    border-top: 1px solid var(--cinza-borda);
+  }
+  .passo.aberto .passo-corpo { display: block; }
+
+  /* DICA */
+  .dica {
+    background: #f0faf8;
+    border-left: 3px solid var(--verde);
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    margin: 14px 0;
+    font-size: 13px;
+    color: var(--texto-sec);
+  }
+  .dica strong { color: var(--verde-esc); }
+  .aviso {
+    background: #fff8f0;
+    border-left: 3px solid var(--laranja);
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    margin: 14px 0;
+    font-size: 13px;
+    color: var(--texto-sec);
+  }
+  .aviso strong { color: var(--laranja); }
+  .info-roxo {
+    background: #f8f4fd;
+    border-left: 3px solid var(--roxo);
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px;
+    margin: 14px 0;
+    font-size: 13px;
+    color: var(--texto-sec);
+  }
+  .info-roxo strong { color: var(--roxo); }
+
+  /* SIMULAÇÃO DE UI */
+  .ui-sim {
+    background: var(--cinza-bg);
+    border: 1px solid var(--cinza-borda);
+    border-radius: 10px;
+    padding: 16px;
+    margin: 14px 0;
+    font-size: 13px;
+  }
+  .ui-sim-titulo {
+    font-size: 11px;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--texto-sec);
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .ui-campo {
+    margin-bottom: 10px;
+  }
+  .ui-campo label {
+    display: block;
+    font-size: 10px;
+    font-weight: 600;
+    color: var(--texto-sec);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 4px;
+  }
+  .ui-campo .valor {
+    background: white;
+    border: 1px solid var(--cinza-borda);
+    border-radius: 6px;
+    padding: 8px 12px;
+    color: var(--texto);
+    font-size: 13px;
+  }
+  .ui-campo .valor.destaque {
+    color: var(--verde-esc);
+    font-weight: 600;
+    border-color: var(--verde);
+  }
+  .btn-sim {
+    display: inline-block;
+    padding: 10px 20px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: default;
+    margin-top: 4px;
+    margin-right: 8px;
+    margin-bottom: 4px;
+  }
+  .btn-verde { background: var(--verde); color: white; }
+  .btn-laranja { background: var(--laranja); color: white; }
+  .btn-cinza { background: #888; color: white; }
+  .btn-roxo { background: var(--roxo); color: white; }
+  .btn-amarelo { background: #f9a825; color: white; }
+
+  /* BADGE STATUS */
+  .badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+  }
+  .badge-pendente { background: #fde8e8; color: #c62828; }
+  .badge-andamento { background: #fff8e1; color: #f9a825; }
+  .badge-concluido { background: #e8f5e9; color: #2e7d32; }
+  .badge-aguardando { background: #ede7f6; color: #7b3fa0; }
+  .badge-devolvido { background: #f4f5f6; color: #888; }
+
+  /* TRACKER */
+  .tracker {
+    display: flex;
+    align-items: center;
+    gap: 0;
+    margin: 14px 0;
+    flex-wrap: wrap;
+    gap: 4px;
+  }
+  .tracker-step {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+  .tracker-circle {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 13px;
+    font-weight: 700;
+    border: 2px solid var(--cinza-borda);
+    background: white;
+    color: var(--texto-sec);
+  }
+  .tracker-circle.ativo { background: var(--verde); color: white; border-color: var(--verde); }
+  .tracker-circle.concluido { background: var(--verde); color: white; border-color: var(--verde); }
+  .tracker-label {
+    font-size: 10px;
+    color: var(--texto-sec);
+    text-align: center;
+    max-width: 60px;
+  }
+  .tracker-line {
+    height: 2px;
+    width: 40px;
+    background: var(--cinza-borda);
+    margin-bottom: 18px;
+  }
+  .tracker-line.ativo { background: var(--verde); }
+
+  /* LISTA NUMERADA */
+  .lista-passos {
+    list-style: none;
+    padding: 0;
+    margin: 14px 0;
+  }
+  .lista-passos li {
+    display: flex;
+    gap: 12px;
+    margin-bottom: 12px;
+    font-size: 14px;
+    color: var(--texto);
+  }
+  .lista-passos li .num {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background: var(--verde);
+    color: white;
+    font-size: 11px;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  /* NAV INFERIOR */
+  .nav-inferior {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    background: white;
+    border-top: 1px solid var(--cinza-borda);
+    padding: 12px 24px;
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    z-index: 99;
+  }
+  .nav-btn {
+    padding: 10px 24px;
+    border-radius: 8px;
+    border: none;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    font-family: 'Inter', sans-serif;
+    transition: all 0.2s;
+  }
+  .nav-btn-sec {
+    background: var(--cinza-bg);
+    color: var(--texto-sec);
+    border: 1px solid var(--cinza-borda);
+  }
+  .nav-btn-sec:hover { background: var(--cinza-borda); }
+  .nav-btn-pri {
+    background: var(--verde);
+    color: white;
+  }
+  .nav-btn-pri:hover { background: var(--verde-esc); }
+
+  /* CONCLUSÃO */
+  .conclusao-card {
+    background: var(--verde-esc);
+    border-radius: 16px;
+    padding: 32px;
+    text-align: center;
+    color: white;
+    margin-top: 32px;
+  }
+  .conclusao-card h2 { font-size: 22px; margin-bottom: 10px; }
+  .conclusao-card p { color: rgba(255,255,255,0.75); font-size: 14px; }
+
+  @media (max-width: 600px) {
+    .hero h1 { font-size: 22px; }
+    .tracker-line { width: 24px; }
+    .nav-inferior { gap: 8px; }
+    .nav-btn { padding: 10px 16px; font-size: 13px; }
+  }
+</style>
+</head>
+<body>
+
+<div class="header">
+  <div class="header-inner">
+    <div>
+      <div class="header-titulo">Controle de Processos — CEDAT/PROFAZ</div>
+      <div class="header-sub">Tutorial para colaboradores</div>
+    </div>
+    <div style="font-size:12px;color:rgba(255,255,255,0.5);">PGM · Fortaleza</div>
+  </div>
+  <div class="progresso-bar"><div class="progresso-fill" id="progressoFill"></div></div>
+</div>
+
+<div class="hero">
+  <h1>Como registrar o andamento de processos</h1>
+  <p>Tutorial passo a passo para buscar, iniciar, concluir e encaminhar processos no sistema de controle da CEDAT.</p>
+  <div class="hero-steps">
+    <div class="hero-step ativo" onclick="irParaSecao('buscar', this)">🔍 Buscar</div>
+    <div class="hero-step" onclick="irParaSecao('iniciar', this)">▶ Iniciar</div>
+    <div class="hero-step" onclick="irParaSecao('concluir', this)">✓ Concluir</div>
+    <div class="hero-step" onclick="irParaSecao('terceiros', this)">📤 Terceiros</div>
+    <div class="hero-step" onclick="irParaSecao('devolver', this)">↩ Devolver</div>
+  </div>
+</div>
+
+<div class="container">
+
+  <!-- SEÇÃO 1: BUSCAR -->
+  <div class="secao" id="buscar">
+    <div class="secao-header">
+      <div class="secao-num" style="background:var(--azul)">1</div>
+      <div>
+        <div class="secao-titulo">Buscar o processo</div>
+        <div class="secao-desc">O primeiro passo antes de qualquer ação</div>
+      </div>
+    </div>
+
+    <div class="passo aberto">
+      <div class="passo-header" onclick="togglePasso(this)">
+        <div class="passo-icon">🔍</div>
+        <div>
+          <div class="passo-titulo">Como acessar o formulário de andamento</div>
+          <div class="passo-subtitulo">Acesse pelo link disponibilizado pela equipe</div>
+        </div>
+        <div class="passo-chevron">⌄</div>
+      </div>
+      <div class="passo-corpo">
+        <ul class="lista-passos">
+          <li><span class="num">1</span><span>Abra o navegador e acesse o link do <strong>Formulário de Andamento</strong> enviado pela equipe</span></li>
+          <li><span class="num">2</span><span>No campo <strong>"Nº do Processo"</strong>, digite ou cole o número do processo que está na sua caixa no Ágilis</span></li>
+          <li><span class="num">3</span><span>Clique em <strong>"Buscar processo"</strong> ou pressione <strong>Enter</strong></span></li>
+        </ul>
+
+        <div class="ui-sim">
+          <div class="ui-sim-titulo">Formulário de andamento</div>
+          <div class="ui-campo">
+            <label>Nº do processo</label>
+            <div class="valor destaque">3013001-52.2023.8.06.7814</div>
+          </div>
+          <div class="btn-sim btn-verde">🔍 Buscar processo</div>
+        </div>
+
+        <div class="dica"><strong>Dica:</strong> Você pode digitar o número com ou sem pontos e traços — o sistema normaliza automaticamente.</div>
+      </div>
+    </div>
+
+    <div class="passo">
+      <div class="passo-header" onclick="togglePasso(this)">
+        <div class="passo-icon">📋</div>
+        <div>
+          <div class="passo-titulo">Conferir os dados encontrados</div>
+          <div class="passo-subtitulo">Verifique se o processo é realmente seu</div>
+        </div>
+        <div class="passo-chevron">⌄</div>
+      </div>
+      <div class="passo-corpo">
+        <p style="font-size:14px;margin-bottom:12px;">Após a busca, o sistema exibe os dados cadastrados pela Juliana. Verifique:</p>
+        <div class="ui-sim">
+          <div class="ui-sim-titulo">Processo encontrado</div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
+            <div class="ui-campo"><label>Nº do processo</label><div class="valor">3013001-52.2023.8.06.7814</div></div>
+            <div class="ui-campo"><label>Data de envio</label><div class="valor">10/06/2026</div></div>
+            <div class="ui-campo"><label>Tipo</label><div class="valor">Prescrição / Remissão</div></div>
+            <div class="ui-campo"><label>Destinatário</label><div class="valor destaque">Emanuel Sales</div></div>
+          </div>
+          <div style="margin-top:8px;">Status: <span class="badge badge-pendente">Pendente</span></div>
+        </div>
+        <div class="aviso"><strong>Atenção:</strong> Se o nome no campo <strong>Destinatário</strong> não for o seu, o processo não é para você. Não registre ações em processos de outros colaboradores.</div>
+      </div>
+    </div>
+
+    <div class="passo">
+      <div class="passo-header" onclick="togglePasso(this)">
+        <div class="passo-icon">🔢</div>
+        <div>
+          <div class="passo-titulo">Entendendo o indicador de etapas</div>
+          <div class="passo-subtitulo">O tracker mostra em que fase o processo está</div>
+        </div>
+        <div class="passo-chevron">⌄</div>
+      </div>
+      <div class="passo-corpo">
+        <p style="font-size:14px;margin-bottom:12px;">Abaixo dos dados, um indicador visual mostra a etapa atual do processo:</p>
+        <div class="ui-sim">
+          <div class="ui-sim-titulo">Tracker de etapas — processo Pendente</div>
+          <div class="tracker">
+            <div class="tracker-step">
+              <div class="tracker-circle concluido">✓</div>
+              <div class="tracker-label">Enviado</div>
+            </div>
+            <div class="tracker-line"></div>
+            <div class="tracker-step">
+              <div class="tracker-circle">2</div>
+              <div class="tracker-label">Em andamento</div>
+            </div>
+            <div class="tracker-line"></div>
+            <div class="tracker-step">
+              <div class="tracker-circle">3</div>
+              <div class="tracker-label">Concluído</div>
+            </div>
+          </div>
+        </div>
+        <div class="dica"><strong>Nota:</strong> Processos que passam pela CTIGI ou SEFIN terão 4 etapas: Enviado → Em andamento → Aguardando → Concluído.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEÇÃO 2: INICIAR -->
+  <div class="secao" id="iniciar">
+    <div class="secao-header">
+      <div class="secao-num" style="background:var(--verde)">2</div>
+      <div>
+        <div class="secao-titulo">Registrar início do trabalho</div>
+        <div class="secao-desc">Quando você abre o processo no Ágilis e começa a analisar</div>
+      </div>
+    </div>
+
+    <div class="passo aberto">
+      <div class="passo-header" onclick="togglePasso(this)">
+        <div class="passo-icon">▶</div>
+        <div>
+          <div class="passo-titulo">Quando registrar o início</div>
+          <div class="passo-subtitulo">No momento em que você começa a trabalhar no processo</div>
+        </div>
+        <div class="passo-chevron">⌄</div>
+      </div>
+      <div class="passo-corpo">
+        <p style="font-size:14px;margin-bottom:12px;">O botão <strong>"Registrar início do trabalho"</strong> aparece quando o processo está com status <span class="badge badge-pendente">Pendente</span>.</p>
+        <div class="ui-sim">
+          <div class="ui-sim-titulo">Ações disponíveis — Pendente</div>
+          <div class="btn-sim btn-verde">▶ Registrar início do trabalho</div>
+          <div class="btn-sim btn-cinza">↩ Devolver processo</div>
+        </div>
+        <div class="dica"><strong>Importante:</strong> Registre o início no momento em que realmente começar a trabalhar — não antes. Isso garante que o tempo de execução reflita a realidade.</div>
+        <ul class="lista-passos" style="margin-top:12px;">
+          <li><span class="num">1</span><span>Identifique o processo no Ágilis e abra para análise</span></li>
+          <li><span class="num">2</span><span>Busque o número no formulário de controle</span></li>
+          <li><span class="num">3</span><span>Clique em <strong>"Registrar início do trabalho"</strong></span></li>
+          <li><span class="num">4</span><span>O status muda automaticamente para <span class="badge badge-andamento">Em andamento</span></span></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEÇÃO 3: CONCLUIR -->
+  <div class="secao" id="concluir">
+    <div class="secao-header">
+      <div class="secao-num" style="background:var(--verde)">3</div>
+      <div>
+        <div class="secao-titulo">Confirmar conclusão</div>
+        <div class="secao-desc">Quando o trabalho no processo estiver finalizado</div>
+      </div>
+    </div>
+
+    <div class="passo aberto">
+      <div class="passo-header" onclick="togglePasso(this)">
+        <div class="passo-icon">✓</div>
+        <div>
+          <div class="passo-titulo">Como registrar a conclusão</div>
+          <div class="passo-subtitulo">Após finalizar o trabalho no processo</div>
+        </div>
+        <div class="passo-chevron">⌄</div>
+      </div>
+      <div class="passo-corpo">
+        <p style="font-size:14px;margin-bottom:12px;">Com o processo <span class="badge badge-andamento">Em andamento</span>, o botão de conclusão fica disponível:</p>
+        <div class="ui-sim">
+          <div class="ui-sim-titulo">Ações disponíveis — Em andamento</div>
+          <div class="btn-sim btn-verde">✓ Confirmar conclusão</div>
+          <div class="btn-sim btn-roxo">📤 Encaminhar para terceiro</div>
+          <div class="btn-sim btn-cinza">↩ Devolver processo</div>
+        </div>
+        <ul class="lista-passos" style="margin-top:12px;">
+          <li><span class="num">1</span><span>Finalize o trabalho no processo no Ágilis</span></li>
+          <li><span class="num">2</span><span>Busque o número no formulário de controle</span></li>
+          <li><span class="num">3</span><span>Clique em <strong>"Confirmar conclusão"</strong></span></li>
+          <li><span class="num">4</span><span>O status muda para <span class="badge badge-concluido">Concluído</span> automaticamente</span></li>
+        </ul>
+        <div class="dica"><strong>Tempo de execução:</strong> O sistema calcula automaticamente quanto tempo levou entre o início e a conclusão — apenas o tempo que você realmente trabalhou.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEÇÃO 4: TERCEIROS -->
+  <div class="secao" id="terceiros">
+    <div class="secao-header">
+      <div class="secao-num" style="background:var(--roxo)">4</div>
+      <div>
+        <div class="secao-titulo">Encaminhar para terceiros (CTIGI ou SEFIN)</div>
+        <div class="secao-desc">Quando o processo precisa de ação externa antes de ser concluído</div>
+      </div>
+    </div>
+
+    <div class="passo aberto">
+      <div class="passo-header" onclick="togglePasso(this)">
+        <div class="passo-icon">📤</div>
+        <div>
+          <div class="passo-titulo">Quando usar esta opção</div>
+          <div class="passo-subtitulo">Para demandas que dependem da TI ou da SEFIN</div>
+        </div>
+        <div class="passo-chevron">⌄</div>
+      </div>
+      <div class="passo-corpo">
+        <p style="font-size:14px;margin-bottom:12px;">Use quando o processo não puder ser concluído sem uma ação de outro órgão:</p>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:14px 0;">
+          <div style="background:#f0f4ff;border:1px solid #c5d3f0;border-radius:8px;padding:14px;">
+            <div style="font-weight:600;color:var(--azul);margin-bottom:6px;">🖥️ CTIGI</div>
+            <div style="font-size:13px;color:var(--texto-sec);">Desjudicialização, Emenda à inicial ou Ilegitimidade Passiva com múltiplas CDAs que precisam de procedimento técnico no sistema</div>
+          </div>
+          <div style="background:#fff0f0;border:1px solid #f0c5c5;border-radius:8px;padding:14px;">
+            <div style="font-weight:600;color:#c62828;margin-bottom:6px;">🏛️ SEFIN</div>
+            <div style="font-size:13px;color:var(--texto-sec);">Processos que precisam de dados, documentos ou providências da Secretaria de Finanças que não temos acesso direto</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="passo">
+      <div class="passo-header" onclick="togglePasso(this)">
+        <div class="passo-icon">📝</div>
+        <div>
+          <div class="passo-titulo">Como encaminhar para a CTIGI</div>
+          <div class="passo-subtitulo">Inclui obrigatoriamente o número de protocolo</div>
+        </div>
+        <div class="passo-chevron">⌄</div>
+      </div>
+      <div class="passo-corpo">
+        <ul class="lista-passos">
+          <li><span class="num">1</span><span>Com o processo <span class="badge badge-andamento">Em andamento</span>, clique em <strong style="color:var(--roxo)">📤 Encaminhar para terceiro</strong></span></li>
+          <li><span class="num">2</span><span>Selecione o destino: <strong>CTIGI</strong></span></li>
+          <li><span class="num">3</span><span>Abra o e-mail de resposta automática da CTIGI e copie o <strong>número de protocolo</strong> (ex: CTIGI-2026-12345)</span></li>
+          <li><span class="num">4</span><span>Cole o protocolo no campo indicado</span></li>
+          <li><span class="num">5</span><span>Descreva brevemente o <strong>motivo do encaminhamento</strong></span></li>
+          <li><span class="num">6</span><span>Clique em <strong>"Encaminhar para terceiro"</strong> para confirmar</span></li>
+        </ul>
+        <div class="ui-sim">
+          <div class="ui-sim-titulo">Formulário de encaminhamento</div>
+          <div class="ui-campo"><label>Destino</label><div class="valor">CTIGI</div></div>
+          <div class="ui-campo"><label>Nº de protocolo <span style="color:red">*</span></label><div class="valor destaque">CTIGI-2026-12345</div></div>
+          <div class="ui-campo"><label>Motivo do encaminhamento</label><div class="valor">Volume de CDAs excede capacidade manual — necessita procedimento via sistema</div></div>
+          <div class="btn-sim btn-roxo">📤 Encaminhar para terceiro</div>
+        </div>
+        <div class="aviso"><strong>Atenção:</strong> O protocolo é obrigatório para encaminhamentos à CTIGI. Sem ele não é possível confirmar o envio.</div>
+      </div>
+    </div>
+
+    <div class="passo">
+      <div class="passo-header" onclick="togglePasso(this)">
+        <div class="passo-icon">⏳</div>
+        <div>
+          <div class="passo-titulo">Enquanto aguarda a resposta</div>
+          <div class="passo-subtitulo">O processo fica registrado como aguardando</div>
+        </div>
+        <div class="passo-chevron">⌄</div>
+      </div>
+      <div class="passo-corpo">
+        <p style="font-size:14px;margin-bottom:12px;">Após o encaminhamento, o status muda automaticamente:</p>
+        <div style="display:flex;gap:12px;margin:14px 0;flex-wrap:wrap;">
+          <div style="text-align:center;"><div style="font-size:11px;color:var(--texto-sec);margin-bottom:4px;">Para CTIGI</div><span class="badge badge-aguardando">Aguardando CTIGI</span></div>
+          <div style="text-align:center;"><div style="font-size:11px;color:var(--texto-sec);margin-bottom:4px;">Para SEFIN</div><span class="badge badge-aguardando">Aguardando SEFIN</span></div>
+        </div>
+        <div class="info-roxo"><strong>Importante:</strong> O tempo que o processo fica aguardando resposta externa <strong>não é contabilizado no seu tempo de execução</strong>. Ele aparece separado no dashboard como "dias aguardando CTIGI/SEFIN".</div>
+      </div>
+    </div>
+
+    <div class="passo">
+      <div class="passo-header" onclick="togglePasso(this)">
+        <div class="passo-icon">✅</div>
+        <div>
+          <div class="passo-titulo">Quando a resposta chegar</div>
+          <div class="passo-subtitulo">Registre a conclusão após receber o retorno</div>
+        </div>
+        <div class="passo-chevron">⌄</div>
+      </div>
+      <div class="passo-corpo">
+        <ul class="lista-passos">
+          <li><span class="num">1</span><span>Ao receber a resposta da CTIGI ou SEFIN, volte ao formulário de controle</span></li>
+          <li><span class="num">2</span><span>Busque o número do processo</span></li>
+          <li><span class="num">3</span><span>Clique em <strong style="color:#f9a825">✓ Resposta recebida — Concluir</strong></span></li>
+        </ul>
+        <div class="ui-sim">
+          <div class="ui-sim-titulo">Status: Aguardando CTIGI</div>
+          <div style="margin-bottom:12px;"><span class="badge badge-aguardando">⏳ Aguardando CTIGI</span></div>
+          <div class="btn-sim btn-amarelo">✓ Resposta recebida — Concluir</div>
+          <div class="btn-sim btn-cinza">↩ Devolver processo</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEÇÃO 5: DEVOLVER -->
+  <div class="secao" id="devolver">
+    <div class="secao-header">
+      <div class="secao-num" style="background:#888">5</div>
+      <div>
+        <div class="secao-titulo">Devolver processo</div>
+        <div class="secao-desc">Quando o processo foi distribuído para a pessoa errada</div>
+      </div>
+    </div>
+
+    <div class="passo aberto">
+      <div class="passo-header" onclick="togglePasso(this)">
+        <div class="passo-icon">↩</div>
+        <div>
+          <div class="passo-titulo">Quando e como devolver</div>
+          <div class="passo-subtitulo">Erro de distribuição ou processo fora da sua competência</div>
+        </div>
+        <div class="passo-chevron">⌄</div>
+      </div>
+      <div class="passo-corpo">
+        <p style="font-size:14px;margin-bottom:12px;">Use a devolução quando identificar que o processo não é de sua responsabilidade:</p>
+        <ul class="lista-passos">
+          <li><span class="num">1</span><span>Busque o número no formulário de controle</span></li>
+          <li><span class="num">2</span><span>Clique em <strong>"↩ Devolver processo"</strong></span></li>
+          <li><span class="num">3</span><span>O status muda para <span class="badge badge-devolvido">Devolvido</span> e a Juliana é notificada para redistribuir</span></li>
+        </ul>
+        <div class="aviso"><strong>Atenção:</strong> A devolução é registrada no histórico do processo. Use apenas quando o processo realmente não for de sua competência — não para casos em que precisa de mais tempo.</div>
+        <div class="dica"><strong>Exemplo comum:</strong> Uma Desjudicialização que na verdade precisava de migração no sistema primeiro. Você devolve, André faz a migração e depois o processo volta para você.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- CONCLUSÃO -->
+  <div class="conclusao-card">
+    <div style="font-size:40px;margin-bottom:12px;">🎯</div>
+    <h2>Pronto! Você já sabe usar o sistema.</h2>
+    <p style="margin-top:8px;">Em caso de dúvidas, fale com Emanuel Sales — analista responsável pelo sistema.</p>
+    <p style="margin-top:16px;font-size:12px;opacity:0.5;">CEDAT / PROFAZ · Procuradoria Geral do Município de Fortaleza</p>
+  </div>
+
+</div><!-- fim container -->
+
+<div class="nav-inferior">
+  <button class="nav-btn nav-btn-sec" onclick="secaoAnterior()">← Anterior</button>
+  <span id="navContador" style="font-size:13px;color:var(--texto-sec);align-self:center;">1 / 5</span>
+  <button class="nav-btn nav-btn-pri" onclick="proximaSecao()">Próximo →</button>
+</div>
+
+<script>
+  const secoes = ['buscar','iniciar','concluir','terceiros','devolver'];
+  let secaoAtual = 0;
+
+  function togglePasso(header) {
+    const passo = header.parentElement;
+    passo.classList.toggle('aberto');
+  }
+
+  function irParaSecao(id, el) {
+    document.getElementById(id).scrollIntoView({ behavior: 'smooth' });
+    document.querySelectorAll('.hero-step').forEach(s => s.classList.remove('ativo'));
+    if (el) el.classList.add('ativo');
+    secaoAtual = secoes.indexOf(id);
+    atualizarNav();
+  }
+
+  function proximaSecao() {
+    if (secaoAtual < secoes.length - 1) {
+      secaoAtual++;
+      irParaSecao(secoes[secaoAtual]);
+    }
+  }
+
+  function secaoAnterior() {
+    if (secaoAtual > 0) {
+      secaoAtual--;
+      irParaSecao(secoes[secaoAtual]);
+    }
+  }
+
+  function atualizarNav() {
+    document.getElementById('navContador').textContent = `${secaoAtual + 1} / ${secoes.length}`;
+    // Atualizar hero-steps
+    document.querySelectorAll('.hero-step').forEach((s, i) => {
+      s.classList.toggle('ativo', i === secaoAtual);
+    });
+  }
+
+  // Progresso baseado no scroll
+  window.addEventListener('scroll', () => {
+    const total = document.body.scrollHeight - window.innerHeight;
+    const pct = total > 0 ? (window.scrollY / total) * 100 : 0;
+    document.getElementById('progressoFill').style.width = pct + '%';
+
+    // Detectar seção visível
+    secoes.forEach((id, i) => {
+      const el = document.getElementById(id);
+      if (!el) return;
+      const rect = el.getBoundingClientRect();
+      if (rect.top < 200 && rect.bottom > 0) {
+        secaoAtual = i;
+        atualizarNav();
+      }
+    });
+  });
+</script>
+</body>
+</html>
