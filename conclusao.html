@@ -239,7 +239,39 @@
       const area = document.getElementById('btnArea');
       area.innerHTML = '';
 
-      const btnDevolver = `<button class="btn btn-devolver" style="background:#888;color:#fff;margin-top:8px" onclick="registrarAcao('devolver')">↩ Devolver processo</button>`;
+      const btnDevolver = `
+        <button class="btn btn-devolver" style="background:#888;color:#fff;margin-top:8px" onclick="abrirPainelDevolucao()">↩ Devolver processo</button>
+        <div id="painelDevolucao" style="display:none;margin-top:12px;padding:1.25rem;background:#f9fafb;border:1.5px solid #dde1e5;border-radius:10px;">
+          <p style="font-size:13px;font-weight:600;color:#1a1f24;margin-bottom:12px;">Motivo da devolução</p>
+          <div style="display:flex;gap:16px;margin-bottom:12px;">
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
+              <input type="radio" name="motivoDev" value="pessoa" onchange="trocarMotivoDev(this.value)" /> Erro de pessoa
+            </label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
+              <input type="radio" name="motivoDev" value="assunto" onchange="trocarMotivoDev(this.value)" /> Erro de assunto
+            </label>
+          </div>
+          <div id="campoPessoa" style="display:none;margin-bottom:12px;">
+            <label style="font-size:11px;font-weight:600;color:#5a6472;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:6px;">Possivelmente é para</label>
+            <select id="selectDevPessoa" style="width:100%;padding:9px 12px;border:1.5px solid #dde1e5;border-radius:8px;font-size:14px;font-family:inherit;outline:none;">
+              <option value="">Selecione o colaborador...</option>
+              <option value="Emanuel Sales">Emanuel Sales</option>
+              <option value="Romário Nascimento">Romário Nascimento</option>
+              <option value="André Felipe">André Felipe</option>
+              <option value="Letícia Melo">Letícia Melo</option>
+              <option value="Samuel Bezerra">Samuel Bezerra</option>
+              <option value="Nathalia Fernandes">Nathalia Fernandes</option>
+              <option value="Mayra Germana">Mayra Germana</option>
+              <option value="Jamile Silva">Jamile Silva</option>
+            </select>
+          </div>
+          <div id="campoAssunto" style="display:none;margin-bottom:12px;">
+            <label style="font-size:11px;font-weight:600;color:#5a6472;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:6px;">Possivelmente é um caso de</label>
+            <input type="text" id="inputDevAssunto" placeholder="Ex: Migração SIMAT, Prescrição..." style="width:100%;padding:9px 12px;border:1.5px solid #dde1e5;border-radius:8px;font-size:14px;font-family:inherit;outline:none;" />
+          </div>
+          <button onclick="confirmarDevolucao()" style="width:100%;padding:10px;background:#888;color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">↩ Confirmar devolução</button>
+        </div>
+      `
 
       if (status === 'Pendente') {
         area.innerHTML = `<button class="btn btn-iniciar" onclick="registrarAcao('iniciar')">▶ Registrar início do trabalho</button>` + btnDevolver;
