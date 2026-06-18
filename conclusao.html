@@ -264,6 +264,10 @@
             <label style="font-size:11px;font-weight:600;color:#5a6472;text-transform:uppercase;display:block;margin-bottom:6px;">Possivelmente é um caso de</label>
             <input type="text" id="inputDevAssunto" placeholder="Ex: Migração SIMAT..." style="width:100%;padding:9px 12px;border:1.5px solid #dde1e5;border-radius:8px;font-size:14px;font-family:inherit;outline:none;" />
           </div>
+          <div style="margin-bottom:12px;">
+            <label style="font-size:11px;font-weight:600;color:#5a6472;text-transform:uppercase;display:block;margin-bottom:6px;">Observação adicional (opcional)</label>
+            <input type="text" id="inputDevObs" placeholder="Ex: verificar se é migração primeiro..." style="width:100%;padding:9px 12px;border:1.5px solid #dde1e5;border-radius:8px;font-size:14px;font-family:inherit;outline:none;" />
+          </div>
           <button id="btnConfirmarDev" style="width:100%;padding:10px;background:#888;color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">↩ Confirmar devolução</button>
         </div>`;
 
@@ -468,6 +472,8 @@
             const assunto = document.getElementById('inputDevAssunto').value.trim();
             motivoTexto = assunto ? 'Erro de assunto — possivelmente é um caso de ' + assunto + '. Verificar.' : 'Erro de assunto. Verificar.';
           }
+          const obs = document.getElementById('inputDevObs') ? document.getElementById('inputDevObs').value.trim() : '';
+          if (obs) motivoTexto += ' Obs: ' + obs;
           const agora = encodeURIComponent(new Date().toLocaleString('pt-BR'));
           const motEnc = encodeURIComponent(motivoTexto);
           const url = SCRIPT_URL + '?aba=Entradas-v2&acao=devolver&linha=' + processoAtual.linha + '&data=' + agora + '&motivo=' + motEnc;
