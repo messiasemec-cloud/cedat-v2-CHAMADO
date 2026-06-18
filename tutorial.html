@@ -749,9 +749,28 @@
         <p style="font-size:14px;margin-bottom:12px;">Use a devolução quando identificar que o processo não é de sua responsabilidade:</p>
         <ul class="lista-passos">
           <li><span class="num">1</span><span>Busque o número no formulário de controle</span></li>
-          <li><span class="num">2</span><span>Clique em <strong>"↩ Devolver processo"</strong></span></li>
-          <li><span class="num">3</span><span>O status muda para <span class="badge badge-devolvido">Devolvido</span> e a Juliana é notificada para redistribuir</span></li>
+          <li><span class="num">2</span><span>Clique em <strong>"↩ Devolver processo"</strong> — um painel se abre abaixo do botão</span></li>
+          <li><span class="num">3</span><span>Selecione o <strong>motivo da devolução</strong>:</span></li>
         </ul>
+
+        <div class="ui-sim" style="margin-top:0;">
+          <div class="ui-sim-titulo">Painel de devolução</div>
+          <div style="margin-bottom:10px;font-size:13px;font-weight:600;color:var(--texto);">Motivo da devolução</div>
+          <div style="display:flex;gap:16px;margin-bottom:12px;">
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;">⚪ Erro de pessoa</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;">⚪ Erro de assunto</label>
+          </div>
+          <div style="background:#f0f0f0;border-radius:6px;padding:8px 12px;font-size:12px;color:var(--texto-sec);margin-bottom:10px;">
+            <strong>Erro de pessoa</strong> → abre menu suspenso com os colaboradores para indicar para quem possivelmente é<br>
+            <strong>Erro de assunto</strong> → abre campo de texto para descrever qual seria o assunto correto
+          </div>
+          <div class="btn-sim btn-cinza">↩ Confirmar devolução</div>
+        </div>
+
+        <ul class="lista-passos" style="margin-top:12px;">
+          <li><span class="num">4</span><span>Clique em <strong>"↩ Confirmar devolução"</strong> — o status muda para <span class="badge badge-devolvido">Devolvido</span> e a Juliana recebe uma notificação por e-mail com o motivo informado</span></li>
+        </ul>
+
         <div class="info-roxo" style="background:#f0faf8;border-left-color:var(--verde);">
           <strong>📌 Na prática:</strong> Ao receber a notificação, a Juliana irá <strong>avocar o processo diretamente no Ágilis Processo</strong> da caixa do colaborador — não sendo necessário que o colaborador tramite o processo para ninguém.
         </div>
