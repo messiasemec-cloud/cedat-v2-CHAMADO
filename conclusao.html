@@ -239,22 +239,17 @@
       const area = document.getElementById('btnArea');
       area.innerHTML = '';
 
-      const btnDevolver = `
-        <button class="btn btn-devolver" style="background:#888;color:#fff;margin-top:8px" onclick="abrirPainelDevolucao()">↩ Devolver processo</button>
+      const painelDev = `
         <div id="painelDevolucao" style="display:none;margin-top:12px;padding:1.25rem;background:#f9fafb;border:1.5px solid #dde1e5;border-radius:10px;">
           <p style="font-size:13px;font-weight:600;color:#1a1f24;margin-bottom:12px;">Motivo da devolução</p>
           <div style="display:flex;gap:16px;margin-bottom:12px;">
-            <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
-              <input type="radio" name="motivoDev" value="pessoa" onchange="trocarMotivoDev(this.value)" /> Erro de pessoa
-            </label>
-            <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;">
-              <input type="radio" name="motivoDev" value="assunto" onchange="trocarMotivoDev(this.value)" /> Erro de assunto
-            </label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="motivoDev" value="pessoa" id="radioDevPessoa" /> Erro de pessoa</label>
+            <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer;"><input type="radio" name="motivoDev" value="assunto" id="radioDevAssunto" /> Erro de assunto</label>
           </div>
           <div id="campoPessoa" style="display:none;margin-bottom:12px;">
-            <label style="font-size:11px;font-weight:600;color:#5a6472;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:6px;">Possivelmente é para</label>
+            <label style="font-size:11px;font-weight:600;color:#5a6472;text-transform:uppercase;display:block;margin-bottom:6px;">Possivelmente é para</label>
             <select id="selectDevPessoa" style="width:100%;padding:9px 12px;border:1.5px solid #dde1e5;border-radius:8px;font-size:14px;font-family:inherit;outline:none;">
-              <option value="">Selecione o colaborador...</option>
+              <option value="">Selecione...</option>
               <option value="Emanuel Sales">Emanuel Sales</option>
               <option value="Romário Nascimento">Romário Nascimento</option>
               <option value="André Felipe">André Felipe</option>
@@ -266,12 +261,13 @@
             </select>
           </div>
           <div id="campoAssunto" style="display:none;margin-bottom:12px;">
-            <label style="font-size:11px;font-weight:600;color:#5a6472;text-transform:uppercase;letter-spacing:0.04em;display:block;margin-bottom:6px;">Possivelmente é um caso de</label>
-            <input type="text" id="inputDevAssunto" placeholder="Ex: Migração SIMAT, Prescrição..." style="width:100%;padding:9px 12px;border:1.5px solid #dde1e5;border-radius:8px;font-size:14px;font-family:inherit;outline:none;" />
+            <label style="font-size:11px;font-weight:600;color:#5a6472;text-transform:uppercase;display:block;margin-bottom:6px;">Possivelmente é um caso de</label>
+            <input type="text" id="inputDevAssunto" placeholder="Ex: Migração SIMAT..." style="width:100%;padding:9px 12px;border:1.5px solid #dde1e5;border-radius:8px;font-size:14px;font-family:inherit;outline:none;" />
           </div>
-          <button onclick="confirmarDevolucao()" style="width:100%;padding:10px;background:#888;color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">↩ Confirmar devolução</button>
-        </div>
-      `
+          <button id="btnConfirmarDev" style="width:100%;padding:10px;background:#888;color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">↩ Confirmar devolução</button>
+        </div>`;
+
+      const btnDevolver = `<button class="btn btn-devolver" id="btnDevolverMain" style="background:#888;color:#fff;margin-top:8px">↩ Devolver processo</button>` + painelDev;
 
       if (status === 'Pendente') {
         area.innerHTML = `<button class="btn btn-iniciar" onclick="registrarAcao('iniciar')">▶ Registrar início do trabalho</button>` + btnDevolver;
@@ -332,8 +328,7 @@
           const status = data.statusProcesso || 'Pendente';
           const temTerceiro = status === 'Aguardando CTIGI' || status === 'Aguardando SEFIN';
           atualizarTracker(status, temTerceiro);
-          renderBotoes(status);
-          document.getElementById('resultado').style.display = 'block';
+          renderBotoes(status);          document.getElementById('resultado').style.display = 'block';
         } else {
           showFeedback('Processo não encontrado. Verifique o número.', 'error');
         }
@@ -446,47 +441,48 @@
       if (e.key === 'Enter') buscarProcesso();
     });
 
-    function abrirPainelDevolucao() {
-      const painel = document.getElementById('painelDevolucao');
-      if (!painel) return;
-      painel.style.display = painel.style.display === 'none' ? 'block' : 'none';
-      if (painel.style.display === 'block') {
-        document.querySelectorAll('input[name="motivoDev"]').forEach(r => r.checked = false);
-        document.getElementById('campoPessoa').style.display = 'none';
+    // Event delegation para botões de devolução
+    document.addEventListener('click', function(e) {
+      if (e.target && e.target.id === 'btnDevolverMain') {
+        const painel = document.getElementById('painelDevolucao');
+        if (painel) painel.style.display = painel.style.display === 'none' ? 'block' : 'none';
+      }
+      if (e.target && e.target.id === 'radioDevPessoa') {
+        document.getElementById('campoPessoa').style.display = 'block';
         document.getElementById('campoAssunto').style.display = 'none';
       }
-    }
-
-    function trocarMotivoDev(val) {
-      document.getElementById('campoPessoa').style.display = val === 'pessoa' ? 'block' : 'none';
-      document.getElementById('campoAssunto').style.display = val === 'assunto' ? 'block' : 'none';
-    }
-
-    async function confirmarDevolucao() {
-      if (!processoAtual) return;
-      const motivoRadio = document.querySelector('input[name="motivoDev"]:checked');
-      if (!motivoRadio) { showFeedback('Selecione o motivo da devolução.', 'error'); return; }
-      let motivoTexto = '';
-      if (motivoRadio.value === 'pessoa') {
-        const pessoa = document.getElementById('selectDevPessoa').value;
-        motivoTexto = pessoa ? 'Erro de pessoa — possivelmente é para ' + pessoa + '. Verificar.' : 'Erro de pessoa. Verificar.';
-      } else {
-        const assunto = document.getElementById('inputDevAssunto').value.trim();
-        motivoTexto = assunto ? 'Erro de assunto — possivelmente é um caso de ' + assunto + '. Verificar.' : 'Erro de assunto. Verificar.';
+      if (e.target && e.target.id === 'radioDevAssunto') {
+        document.getElementById('campoAssunto').style.display = 'block';
+        document.getElementById('campoPessoa').style.display = 'none';
       }
-      const agora = encodeURIComponent(new Date().toLocaleString('pt-BR'));
-      const motEnc = encodeURIComponent(motivoTexto);
-      const url = SCRIPT_URL + '?aba=Entradas-v2&acao=devolver&linha=' + processoAtual.linha + '&data=' + agora + '&motivo=' + motEnc;
-      try {
-        await fetch(url, { mode: 'no-cors' });
-        showFeedback('↩ Processo devolvido com sucesso!', 'success');
-        document.getElementById('resultado').style.display = 'none';
-        document.getElementById('numProcesso').value = '';
-        processoAtual = null;
-      } catch(e) {
-        showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
+      if (e.target && e.target.id === 'btnConfirmarDev') {
+        (async function() {
+          if (!processoAtual) return;
+          const motivoRadio = document.querySelector('input[name="motivoDev"]:checked');
+          if (!motivoRadio) { showFeedback('Selecione o motivo da devolução.', 'error'); return; }
+          let motivoTexto = '';
+          if (motivoRadio.value === 'pessoa') {
+            const pessoa = document.getElementById('selectDevPessoa').value;
+            motivoTexto = pessoa ? 'Erro de pessoa — possivelmente é para ' + pessoa + '. Verificar.' : 'Erro de pessoa. Verificar.';
+          } else {
+            const assunto = document.getElementById('inputDevAssunto').value.trim();
+            motivoTexto = assunto ? 'Erro de assunto — possivelmente é um caso de ' + assunto + '. Verificar.' : 'Erro de assunto. Verificar.';
+          }
+          const agora = encodeURIComponent(new Date().toLocaleString('pt-BR'));
+          const motEnc = encodeURIComponent(motivoTexto);
+          const url = SCRIPT_URL + '?aba=Entradas-v2&acao=devolver&linha=' + processoAtual.linha + '&data=' + agora + '&motivo=' + motEnc;
+          try {
+            await fetch(url, { mode: 'no-cors' });
+            showFeedback('↩ Processo devolvido com sucesso!', 'success');
+            document.getElementById('resultado').style.display = 'none';
+            document.getElementById('numProcesso').value = '';
+            processoAtual = null;
+          } catch(err) {
+            showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
+          }
+        })();
       }
-    }
+    });
   </script>
 <!-- MODAL ENCAMINHAR TERCEIRO -->
 
