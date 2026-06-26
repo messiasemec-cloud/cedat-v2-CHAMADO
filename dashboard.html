@@ -432,7 +432,7 @@ function renderGeral() {
   document.getElementById('totalEntradas').textContent = lista.length;
   document.getElementById('totalTerceiros').textContent = lista.filter(p => p.status === 'Aguardando CTIGI' || p.status === 'Aguardando SEFIN').length;
   document.getElementById('totalSaidas').textContent = lista.filter(p => p.status === 'Concluído').length;
-  document.getElementById('totalAberto').textContent = lista.filter(p => ['Aguardando início','Em andamento','Aguardando CTIGI','Aguardando SEFIN'].includes(p.status)).length;
+  document.getElementById('totalAberto').textContent = lista.filter(p => ['Pendente','Em andamento','Aguardando CTIGI','Aguardando SEFIN'].includes(p.status)).length;
 
   const statusList = ['Aguardando início', 'Em andamento', 'Ag. CTIGI', 'Ag. SEFIN', 'Concluído', 'Devolvido'];
   const cores = ['#c62828','#f9a825','#7b3fa0','#9c5fb5','#2e7d32','#888'];
@@ -581,7 +581,7 @@ function renderTipo() {
   document.getElementById('tipoEntradas').textContent = listaFiltradaScore.length;
   document.getElementById('tipoTerceiros').textContent = listaFiltradaScore.filter(p => p.status === 'Aguardando CTIGI' || p.status === 'Aguardando SEFIN').length;
   document.getElementById('tipoSaidas').textContent = listaFiltradaScore.filter(p => p.status === 'Concluído').length;
-  document.getElementById('tipoAberto').textContent = listaFiltradaScore.filter(p => ['Aguardando início','Em andamento','Aguardando CTIGI','Aguardando SEFIN'].includes(p.status)).length;
+  document.getElementById('tipoAberto').textContent = listaFiltradaScore.filter(p => ['Pendente','Em andamento','Aguardando CTIGI','Aguardando SEFIN'].includes(p.status)).length;
 
   // Destruir gráficos antigos
   Object.keys(charts).filter(k => k.startsWith('chartTipo_')).forEach(k => { charts[k].destroy(); delete charts[k]; });
