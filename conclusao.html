@@ -294,10 +294,23 @@
             <textarea id="modalMotivo" placeholder="Descreva brevemente o motivo..." oninput="verificarMotivo()"></textarea>
           </div>
         ` + btnDevolver;
-      } else if (status === 'Aguardando CTIGI' || status === 'Aguardando SEFIN') {
+      } else if (status === 'Aguardando CTIGI') {
         area.innerHTML = `
-          <div style="text-align:center;padding:10px;"><span class="badge-aguardando">⏳ ${status}</span></div>
+          <div style="text-align:center;padding:10px;"><span class="badge-aguardando">⏳ Aguardando CTIGI</span></div>
           <button class="btn btn-retomar" style="background:#f9a825;color:#fff;margin-top:8px" onclick="registrarAcao('concluir')">✓ Resposta recebida — Concluir</button>
+        ` + btnDevolver;
+      } else if (status === 'Aguardando SEFIN') {
+        area.innerHTML = `
+          <div style="text-align:center;padding:10px;"><span class="badge-aguardando">⏳ Aguardando SEFIN</span></div>
+          <button class="btn btn-retomar" style="background:#f9a825;color:#fff;margin-top:8px" onclick="registrarAcao('concluir')">✓ Resposta recebida — Concluir</button>
+          <button class="btn btn-terceiro" id="btnTerceiroCtigi" style="background:#7b3fa0;color:#fff;margin-top:8px">📤 Encaminhar para CTIGI</button>
+          <div id="painelTerceiroCtigi" style="display:none;margin-top:12px;padding:1.25rem;background:#f8f4fd;border:1.5px solid #ce93d8;border-radius:10px;">
+            <label style="font-size:11px;font-weight:600;color:#5a6472;text-transform:uppercase;display:block;margin-bottom:6px;">Nº de protocolo CTIGI <span style="color:#c62828">*</span></label>
+            <input type="text" id="inputProtocoloCtigi" placeholder="Ex: CTIGI-2026-12345" style="width:100%;padding:9px 12px;border:1.5px solid #dde1e5;border-radius:8px;font-size:14px;font-family:inherit;outline:none;margin-bottom:10px;" />
+            <label style="font-size:11px;font-weight:600;color:#5a6472;text-transform:uppercase;display:block;margin-bottom:6px;">Motivo</label>
+            <textarea id="inputMotivoCtigi" placeholder="Descreva o motivo..." style="width:100%;padding:9px 12px;border:1.5px solid #dde1e5;border-radius:8px;font-size:14px;font-family:inherit;outline:none;min-height:60px;margin-bottom:10px;resize:vertical;"></textarea>
+            <button id="btnConfirmarCtigi" style="width:100%;padding:10px;background:#7b3fa0;color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">📤 Confirmar encaminhamento para CTIGI</button>
+          </div>
         ` + btnDevolver;
       } else if (status === 'Concluído') {
         area.innerHTML = `<div style="text-align:center; color: var(--verde); font-weight:600; padding: 12px;">✓ Processo já concluído</div>
@@ -448,6 +461,40 @@
 
     // Event delegation para botões de devolução
     document.addEventListener('click', function(e) {
+      if (e.target && e.target.id === 'btnTerceiroCtigi') {
+        const painel = document.getElementById('painelTerceiroCtigi');
+        if (painel) painel.style.display = painel.style.display === 'none' ? 'block' : 'none';
+      }
+
+      if (e.target && e.target.id === 'btnConfirmarCtigi') {
+        (async function() {
+          if (!processoAtual) return;
+          const protocolo = document.getElementById('inputProtocoloCtigi').value.trim();
+          const motivo = document.getElementById('inputMotivoCtigi').value.trim();
+          if (!protocolo) {
+            document.getElementById('inputProtocoloCtigi').style.borderColor = '#c62828';
+            document.getElementById('inputProtocoloCtigi').focus();
+            showFeedback('Informe o número de protocolo da CTIGI.', 'error');
+            return;
+          }
+          const agora = encodeURIComponent(new Date().toLocaleString('pt-BR'));
+          const url = SCRIPT_URL + '?aba=Entradas-v2&acao=terceiro&linha=' + processoAtual.linha
+            + '&status=' + encodeURIComponent('Aguardando CTIGI')
+            + '&protocolo=' + encodeURIComponent(protocolo)
+            + '&motivo=' + encodeURIComponent(motivo)
+            + '&data=' + agora;
+          try {
+            await fetch(url, { mode: 'no-cors' });
+            showFeedback('📤 Encaminhado para CTIGI com sucesso!', 'success');
+            document.getElementById('resultado').style.display = 'none';
+            document.getElementById('numProcesso').value = '';
+            processoAtual = null;
+          } catch(err) {
+            showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
+          }
+        })();
+      }
+
       if (e.target && e.target.id === 'btnDevolverMain') {
         const painel = document.getElementById('painelDevolucao');
         if (painel) painel.style.display = painel.style.display === 'none' ? 'block' : 'none';

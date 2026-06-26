@@ -735,30 +735,26 @@ async function buscarHistorico() {
     const ultimaLinha = linhas[linhas.length - 1];
     const hoje = new Date();
 
-    // Calcular dias aguardando resposta externa (coluna K preenchida)
-    let diasAguardando = 0;
-    let orgAguardando = '';
+    // Calcular dias aguardando CTIGI e SEFIN separadamente
+    let diasCtigi = 0, diasSefin = 0;
     linhas.forEach(l => {
-      const dataEncaminhamento = parseBR(l.dataEncaminhamento) || parseBR(l.dataDevolucao);
-      if (!dataEncaminhamento) return;
-
-      // Detectar organização — protocolo tem prioridade pois persiste após conclusão
+      const dataEnc = parseBR(l.dataEncaminhamento) || parseBR(l.dataDevolucao);
+      if (!dataEnc) return;
       const org = l.protocolo && l.protocolo.toUpperCase().includes('CTIGI') ? 'CTIGI'
                 : l.destino ? l.destino
                 : l.status === 'Aguardando SEFIN' ? 'SEFIN'
                 : 'CTIGI';
-
-      if (l.status === 'Aguardando CTIGI' || l.status === 'Aguardando SEFIN') {
-        diasAguardando += Math.round((hoje - dataEncaminhamento) / (1000*60*60*24));
-        orgAguardando = org;
-      } else if (l.status === 'Concluído' && parseBR(l.dataConclusao)) {
-        const dc = parseBR(l.dataConclusao);
-        const dias = Math.round((dc - dataEncaminhamento) / (1000*60*60*24));
-        if (dias > 0) { diasAguardando += dias; orgAguardando = org; }
-      }
+      const fimRef = (l.status === 'Concluído' && parseBR(l.dataConclusao)) ? parseBR(l.dataConclusao) : hoje;
+      const dias = Math.round((fimRef - dataEnc) / (1000*60*60*24));
+      if (dias <= 0) return;
+      if (org === 'SEFIN') diasSefin += dias;
+      else diasCtigi += dias;
     });
-    const sufixoAguardando = diasAguardando > 0
-      ? ` <span style="color:#7b3fa0;font-size:12px">(incluindo ${diasAguardando} dia${diasAguardando!==1?'s':''} aguardando ${orgAguardando || 'CTIGI'})</span>`
+    let partesSufixo = [];
+    if (diasSefin > 0) partesSufixo.push(diasSefin + ' dia' + (diasSefin!==1?'s':'') + ' aguardando SEFIN');
+    if (diasCtigi > 0) partesSufixo.push(diasCtigi + ' dia' + (diasCtigi!==1?'s':'') + ' aguardando CTIGI');
+    const sufixoAguardando = partesSufixo.length > 0
+      ? ` <span style="color:#7b3fa0;font-size:12px">(incluindo ${partesSufixo.join(' + ')})</span>`
       : '';
 
 
