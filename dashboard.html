@@ -104,16 +104,21 @@
         <button class="btn-atualizar" onclick="carregarDados()">↻ Atualizar</button>
       </div>
     </div>
-    <div class="scorecards">
+    <div class="scorecards" style="grid-template-columns:repeat(4,1fr);gap:10px;">
       <div class="scorecard">
         <div class="scorecard-label">Total de entradas</div>
         <div class="scorecard-valor azul" id="totalEntradas">—</div>
         <div class="scorecard-sub">processos cadastrados</div>
       </div>
       <div class="scorecard">
-        <div class="scorecard-label">Saldo em aberto</div>
+        <div class="scorecard-label">Aguardando início</div>
         <div class="scorecard-valor laranja" id="totalAberto">—</div>
         <div class="scorecard-sub">pendentes + em andamento</div>
+      </div>
+      <div class="scorecard">
+        <div class="scorecard-label">Com terceiros</div>
+        <div class="scorecard-valor" style="color:#7b3fa0" id="totalTerceiros">—</div>
+        <div class="scorecard-sub">aguardando CTIGI / SEFIN</div>
       </div>
       <div class="scorecard">
         <div class="scorecard-label">Total de saídas</div>
@@ -157,7 +162,7 @@
         <div class="scorecard-valor azul" id="pessoaEntradas">—</div>
       </div>
       <div class="scorecard">
-        <div class="scorecard-label">Em aberto</div>
+        <div class="scorecard-label">Aguardando início</div>
         <div class="scorecard-valor laranja" id="pessoaAberto">—</div>
       </div>
       <div class="scorecard">
@@ -203,16 +208,21 @@
         </div>
       </div>
     </div>
-    <div class="scorecards" style="margin-bottom:1.5rem;">
+    <div class="scorecards" style="margin-bottom:1.5rem;grid-template-columns:repeat(4,1fr);gap:10px;">
       <div class="scorecard">
         <div class="scorecard-label">Entradas</div>
         <div class="scorecard-valor azul" id="tipoEntradas">—</div>
         <div class="scorecard-sub">processos cadastrados</div>
       </div>
       <div class="scorecard">
-        <div class="scorecard-label">Em aberto</div>
+        <div class="scorecard-label">Aguardando início</div>
         <div class="scorecard-valor laranja" id="tipoAberto">—</div>
         <div class="scorecard-sub">pendentes + em andamento</div>
+      </div>
+      <div class="scorecard">
+        <div class="scorecard-label">Com terceiros</div>
+        <div class="scorecard-valor" style="color:#7b3fa0" id="tipoTerceiros">—</div>
+        <div class="scorecard-sub">aguardando CTIGI / SEFIN</div>
       </div>
       <div class="scorecard">
         <div class="scorecard-label">Saídas</div>
@@ -417,12 +427,13 @@ function filtrarGeralMes(val) {
 function renderGeral() {
   const lista = filtrarPorPeriodo(todosProcessos, periodoGeral, mesSelecionadoGeral);
   document.getElementById('totalEntradas').textContent = lista.length;
+  document.getElementById('totalTerceiros').textContent = lista.filter(p => p.status === 'Aguardando CTIGI' || p.status === 'Aguardando SEFIN').length;
   document.getElementById('totalSaidas').textContent = lista.filter(p => p.status === 'Concluído').length;
-  document.getElementById('totalAberto').textContent = lista.filter(p => ['Pendente','Em andamento','Aguardando CTIGI','Aguardando SEFIN'].includes(p.status)).length;
+  document.getElementById('totalAberto').textContent = lista.filter(p => ['Aguardando início','Em andamento','Aguardando CTIGI','Aguardando SEFIN'].includes(p.status)).length;
 
-  const statusList = ['Pendente', 'Em andamento', 'Aguardando CTIGI', 'Aguardando SEFIN', 'Concluído', 'Devolvido'];
+  const statusList = ['Aguardando início', 'Em andamento', 'Aguardando CTIGI', 'Aguardando SEFIN', 'Concluído', 'Devolvido'];
   const cores = ['#c62828','#f9a825','#7b3fa0','#9c5fb5','#2e7d32','#888'];
-  const counts = statusList.map(s => lista.filter(p => (p.status||'Pendente') === s).length);
+  const counts = statusList.map((s,i) => lista.filter(p => (p.status||'Pendente') === (i===0?'Pendente':s)).length);
   criarRosca('chartStatusRosca', statusList, counts, cores);
   criarBarras('chartStatusBarras', statusList, [{
     data: counts, backgroundColor: cores, borderRadius: 4
@@ -517,7 +528,7 @@ function renderPessoa() {
   charts['chartDiscoPessoa'] = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: ['Concluído', 'Em andamento', 'Pendente', 'Ag. CTIGI', 'Ag. SEFIN'].filter((l,i) => [concluido,andamento,pendente,agCtigi,agSefin][i] > 0),
+      labels: ['Concluído', 'Em andamento', 'Aguardando início', 'Ag. CTIGI', 'Ag. SEFIN'].filter((l,i) => [concluido,andamento,pendente,agCtigi,agSefin][i] > 0),
       datasets: [{ data: [concluido,andamento,pendente,agCtigi,agSefin].filter(v => v > 0), backgroundColor: ['#2e7d32','#f9a825','#c62828','#7b3fa0','#9c5fb5'].filter((_,i) => [concluido,andamento,pendente,agCtigi,agSefin][i] > 0), borderWidth: 0 }]
     },
     options: {
@@ -564,8 +575,9 @@ function renderTipo() {
   const todos = tipoSel === '__todos__';
   const listaFiltradaScore = todos ? lista : lista.filter(p => p.tipo === tipoSel);
   document.getElementById('tipoEntradas').textContent = listaFiltradaScore.length;
+  document.getElementById('tipoTerceiros').textContent = listaFiltradaScore.filter(p => p.status === 'Aguardando CTIGI' || p.status === 'Aguardando SEFIN').length;
   document.getElementById('tipoSaidas').textContent = listaFiltradaScore.filter(p => p.status === 'Concluído').length;
-  document.getElementById('tipoAberto').textContent = listaFiltradaScore.filter(p => ['Pendente','Em andamento','Aguardando CTIGI','Aguardando SEFIN'].includes(p.status)).length;
+  document.getElementById('tipoAberto').textContent = listaFiltradaScore.filter(p => ['Aguardando início','Em andamento','Aguardando CTIGI','Aguardando SEFIN'].includes(p.status)).length;
 
   // Destruir gráficos antigos
   Object.keys(charts).filter(k => k.startsWith('chartTipo_')).forEach(k => { charts[k].destroy(); delete charts[k]; });
@@ -652,13 +664,13 @@ function formatarData(str) {
 }
 
 function badgeStatusHistorico(s) {
-  const map = { 'Pendente': '#c62828', 'Em andamento': '#f9a825', 'Concluído': '#2e7d32', 'Devolvido': '#888', 'Aguardando CTIGI': '#7b3fa0', 'Aguardando SEFIN': '#7b3fa0' };
+  const map = { 'Aguardando início': '#c62828', 'Em andamento': '#f9a825', 'Concluído': '#2e7d32', 'Devolvido': '#888', 'Aguardando CTIGI': '#7b3fa0', 'Aguardando SEFIN': '#7b3fa0' };
   const cor = map[s] || '#888';
-  return `<span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:${cor}20;color:${cor}">${s||'Pendente'}</span>`;
+  return `<span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:${cor}20;color:${cor}">${s||'Aguardando início'}</span>`;
 }
 
 function calcularTempo(linha) {
-  const status = linha.status || 'Pendente';
+  const status = linha.status || 'Aguardando início';
   const recebido = parseBR(linha.dataEnvio);
   const iniciado = parseBR(linha.dataInicio);
   const concluido = parseBR(linha.dataConclusao);
@@ -752,7 +764,7 @@ async function buscarHistorico() {
       tempoTotalHTML = `<span style="color:#2e7d32;font-weight:600">✓ Concluído em ${dias} dia${dias!==1?'s':''} no total</span>${sufixoAguardando}`;
     } else {
       const dias = Math.round((hoje - primeira) / (1000*60*60*24));
-      tempoTotalHTML = `<span style="color:#e05020;font-weight:600">⏳ Em aberto há ${dias} dia${dias!==1?'s':''} no total</span>${sufixoAguardando}`;
+      tempoTotalHTML = `<span style="color:#e05020;font-weight:600">⏳ Aguardando início há ${dias} dia${dias!==1?'s':''} no total</span>${sufixoAguardando}`;
     }
 
     const rows = linhas.map((l, i) => `
