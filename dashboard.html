@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Dashboard CEDAT — PROFAZ</title><!-- build:20260626_020152 -->
+  <title>Dashboard CEDAT — PROFAZ</title><!-- build:20260626_020343 -->
   <link href="https://fonts.googleapis.com/css2?family=Source+Sans+3:wght@400;500;600&family=Source+Serif+4:wght@600&display=swap" rel="stylesheet"/>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
   <style>
@@ -581,7 +581,7 @@ function renderTipo() {
   document.getElementById('tipoEntradas').textContent = listaFiltradaScore.length;
   document.getElementById('tipoTerceiros').textContent = listaFiltradaScore.filter(p => p.status === 'Aguardando CTIGI' || p.status === 'Aguardando SEFIN').length;
   document.getElementById('tipoSaidas').textContent = listaFiltradaScore.filter(p => p.status === 'Concluído').length;
-  document.getElementById('tipoAberto').textContent = listaFiltradaScore.filter(p => ['Pendente','Em andamento','Aguardando CTIGI','Aguardando SEFIN'].includes(p.status)).length;
+  document.getElementById('tipoAberto').textContent = listaFiltradaScore.filter(p => { const s = p.status||'Pendente'; return s === 'Pendente' || s === 'Em andamento'; }).length;
 
   // Destruir gráficos antigos
   Object.keys(charts).filter(k => k.startsWith('chartTipo_')).forEach(k => { charts[k].destroy(); delete charts[k]; });
