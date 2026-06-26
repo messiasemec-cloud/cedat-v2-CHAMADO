@@ -430,8 +430,8 @@ function filtrarGeralMes(val) {
 function renderGeral() {
   const lista = filtrarPorPeriodo(todosProcessos, periodoGeral, mesSelecionadoGeral);
   document.getElementById('totalEntradas').textContent = lista.length;
-  document.getElementById('totalTerceiros').textContent = lista.filter(p => p.status === 'Aguardando CTIGI' || p.status === 'Aguardando SEFIN').length;
-  document.getElementById('totalSaidas').textContent = lista.filter(p => p.status === 'Concluído').length;
+  document.getElementById('totalTerceiros').textContent = lista.filter(p => (p.status||'') === 'Aguardando CTIGI' || (p.status||'') === 'Aguardando SEFIN').length;
+  document.getElementById('totalSaidas').textContent = lista.filter(p => (p.status||'') === 'Concluído').length;
   document.getElementById('totalAberto').textContent = lista.filter(p => ['Pendente','Em andamento','Aguardando CTIGI','Aguardando SEFIN'].includes(p.status)).length;
 
   const statusList = ['Aguardando início', 'Em andamento', 'Ag. CTIGI', 'Ag. SEFIN', 'Concluído', 'Devolvido'];
