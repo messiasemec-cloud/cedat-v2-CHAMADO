@@ -161,7 +161,11 @@
         <div class="scorecard-valor laranja" id="pessoaAberto">—</div>
       </div>
       <div class="scorecard">
-        <div class="scorecard-label">Concluídos</div>
+        <div class="scorecard-label">Com terceiros</div>
+        <div class="scorecard-valor" style="color:#7b3fa0" id="pessoaTerceiros">—</div>
+      </div>
+      <div class="scorecard">
+        <div class="scorecard-label">Saídas</div>
         <div class="scorecard-valor verde" id="pessoaSaidas">—</div>
       </div>
     </div>
@@ -469,8 +473,9 @@ function renderPessoa() {
   const agSefin = lista.filter(p => p.status === 'Aguardando SEFIN').length;
 
   document.getElementById('pessoaEntradas').textContent = lista.length;
+  document.getElementById('pessoaAberto').textContent = andamento + pendente;
+  document.getElementById('pessoaTerceiros').textContent = agCtigi + agSefin;
   document.getElementById('pessoaSaidas').textContent = concluido;
-  document.getElementById('pessoaAberto').textContent = andamento + pendente + agCtigi + agSefin;
 
   const titulo = tipoSel === 'Todos'
     ? `${pessoa} — todos os tipos`
