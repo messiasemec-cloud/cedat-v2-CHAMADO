@@ -724,7 +724,8 @@ function calcularTempo(linha) {
       const dias = diasEntreDatas(ref, hoje);
       const dest = status === 'Aguardando SEFIN' ? 'SEFIN' : 'CTIGI';
       const label = dias === 0 ? 'hoje' : `há ${fmt(dias)}`;
-      return `<span style="color:#7b3fa0;font-weight:600">Enviado para ${dest} ${label}</span>`;
+      const prot = linha.protocolo ? ` <span style="color:#5a6472;font-weight:400;font-size:12px">(protocolo: ${linha.protocolo})</span>` : '';
+      return `<span style="color:#7b3fa0;font-weight:600">Enviado para ${dest} ${label}</span>${prot}`;
     }
     return `<span style="color:#7b3fa0;font-weight:600">${status}</span>`;
   }
