@@ -652,6 +652,9 @@ function diasEntre(d1, d2) {
 
 function parseBR(str) {
   if (!str) return null;
+  if (typeof str !== 'string') str = String(str);
+  // Formato ISO completo (vindo do Sheets serializado)
+  if (str.match(/^\d{4}-\d{2}-\d{2}T/)) return new Date(str);
   // Formato dd/mm/yyyy, HH:MM:SS
   const m = str.match(/(\d{2})\/(\d{2})\/(\d{4}),?\s*(\d{2}):(\d{2})/);
   if (m) return new Date(`${m[3]}-${m[2]}-${m[1]}T${m[4]}:${m[5]}:00`);
@@ -740,8 +743,7 @@ async function buscarHistorico() {
     linhas.forEach(l => {
       const dataEnc = parseBR(l.dataEncaminhamento) || parseBR(l.dataDevolucao);
       if (!dataEnc) return;
-      const org = l.protocolo && l.protocolo.toUpperCase().includes('CTIGI') ? 'CTIGI'
-                : l.destino ? l.destino
+      const org = l.destino ? l.destino
                 : l.status === 'Aguardando SEFIN' ? 'SEFIN'
                 : 'CTIGI';
       const fimRef = (l.status === 'Concluído' && parseBR(l.dataConclusao)) ? parseBR(l.dataConclusao) : hoje;
