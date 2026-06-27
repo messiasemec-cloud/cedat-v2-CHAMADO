@@ -374,14 +374,14 @@ function gerarPDFSemanal() {
 
   // ── LOGO ────────────────────────────────────────────────
   try {
-    doc.addImage('data:image/png;base64,' + LOGO_PGM_B64, 'PNG', mL, y, 38, 14);
+    doc.addImage('data:image/png;base64,' + LOGO_PGM_B64, 'PNG', mL, y, 65, 24);
   } catch(e) {}
 
   // ── TÍTULO ──────────────────────────────────────────────
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(13);
   doc.setTextColor(...VERDE);
-  doc.text('Relatório Semanal de Processos', pW - mR, y + 5, { align: 'right' });
+  doc.text('Relatório Semanal de Processos', pW - mR, y + 8, { align: 'right' });
 
   doc.setFont('helvetica', 'normal');
   doc.setFontSize(9);
@@ -392,10 +392,10 @@ function gerarPDFSemanal() {
   const fimSem = new Date(inicioSem);
   fimSem.setDate(fimSem.getDate() + 7);
   const fmtData = d => d.toLocaleDateString('pt-BR', {day:'2-digit', month:'2-digit', year:'numeric'});
-  doc.text(`Período: ${fmtData(inicioSem)} a ${fmtData(fimSem)}`, pW - mR, y + 11, { align: 'right' });
-  doc.text('CEDAT / PROFAZ — Procuradoria Geral do Município de Fortaleza', pW - mR, y + 16, { align: 'right' });
+  doc.text(`Período: ${fmtData(inicioSem)} a ${fmtData(fimSem)}`, pW - mR, y + 15, { align: 'right' });
+  doc.text('CEDAT / PROFAZ — Procuradoria Geral do Município de Fortaleza', pW - mR, y + 21, { align: 'right' });
 
-  y += 22;
+  y += 30;
 
   // ── LINHA SEPARADORA ────────────────────────────────────
   doc.setDrawColor(...VERDE);
