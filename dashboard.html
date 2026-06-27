@@ -791,25 +791,25 @@ async function buscarHistorico() {
       else diasCtigi += dias;
     });
 
-    // Monta sufixo de terceiros
-    let partesSufixo = [];
-    if (diasSefin > 0) partesSufixo.push(`${diasSefin} dia${diasSefin!==1?'s':''} c/ SEFIN`);
-    if (diasCtigi > 0) partesSufixo.push(`${diasCtigi} dia${diasCtigi!==1?'s':''} c/ CTIGI`);
-    const sufixoTerceiros = partesSufixo.length > 0
-      ? ` <span style="color:#7b3fa0;font-size:12px;font-weight:400">(${partesSufixo.join(' + ')})</span>`
+    // Monta sufixo de terceiros (SEFIN e CTIGI separados por ·)
+    let partesTerceiros = [];
+    if (diasSefin > 0) partesTerceiros.push(`${diasSefin} dia${diasSefin!==1?'s':''} c/ SEFIN`);
+    if (diasCtigi > 0) partesTerceiros.push(`${diasCtigi} dia${diasCtigi!==1?'s':''} c/ CTIGI`);
+    const sufixoTerceiros = partesTerceiros.length > 0
+      ? ` <span style="color:rgba(255,255,255,0.85);font-size:13px;font-weight:400">(${partesTerceiros.join(' · ')})</span>`
       : '';
 
     // Tempo total: da primeira entrada até conclusão final ou hoje
     const ultimaLinha = linhas[linhas.length - 1];
     let tempoTotalHTML = '';
     if (ultimaLinha.status === 'Concluído' && parseBR(ultimaLinha.dataConclusao)) {
-      const dias = diasEntreDatas(primeira, parseBR(ultimaLinha.dataConclusao));
-      const label = dias === 0 ? 'no mesmo dia' : `em ${dias} dia${dias!==1?'s':''}`;
-      tempoTotalHTML = `<span style="color:#2e7d32;font-weight:600">✓ Concluído ${label}</span>${sufixoTerceiros}`;
+      const diasTotal = diasEntreDatas(primeira, parseBR(ultimaLinha.dataConclusao));
+      const labelTotal = diasTotal === 0 ? 'no mesmo dia' : `${diasTotal} dia${diasTotal!==1?'s':''}`;
+      tempoTotalHTML = `Trâmite total: ${labelTotal}${sufixoTerceiros}`;
     } else {
-      const dias = diasEntreDatas(primeira, hoje);
-      const label = dias === 0 ? 'hoje' : `há ${dias} dia${dias!==1?'s':''}`;
-      tempoTotalHTML = `<span style="color:#e05020;font-weight:600">⏳ Em aberto ${label}</span>${sufixoTerceiros}`;
+      const diasTotal = diasEntreDatas(primeira, hoje);
+      const labelTotal = diasTotal === 0 ? 'hoje' : `${diasTotal} dia${diasTotal!==1?'s':''}`;
+      tempoTotalHTML = `Trâmite total: ${labelTotal}${sufixoTerceiros}`;
     }
 
     const rows = linhas.map((l, i) => `
@@ -825,7 +825,7 @@ async function buscarHistorico() {
       <div style="background:#fff;border-radius:12px;border:1px solid #dde1e5;overflow:hidden;margin-bottom:1rem;">
         <div style="background:#0a8a7a;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
           <span style="color:white;font-weight:600;font-size:15px;">Processo ${num}</span>
-          <span style="color:white;font-size:13px;font-weight:500;">${tempoTotalHTML.replace(/style="color:[^"]*"/g,'style="color:white"').replace(/style="color:[^"]*;font-size:12px;font-weight:400"/g,'style="color:rgba(255,255,255,0.8);font-size:12px;font-weight:400"')}</span>
+          <span style="color:white;font-size:13px;font-weight:500;">${tempoTotalHTML}</span>
         </div>
         <div style="overflow-x:auto;">
           <table style="width:100%;border-collapse:collapse;font-size:13px;">
