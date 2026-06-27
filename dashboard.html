@@ -653,15 +653,23 @@ function diasEntre(d1, d2) {
 function parseBR(str) {
   if (!str) return null;
   if (typeof str !== 'string') str = String(str);
-  // Formato ISO completo (vindo do Sheets serializado)
-  if (str.match(/^\d{4}-\d{2}-\d{2}T/)) return new Date(str);
-  // Formato dd/mm/yyyy, HH:MM:SS
+  // ISO completo vindo do Sheets (ex: 2026-06-24T14:12:30.000Z)
+  if (/^\d{4}-\d{2}-\d{2}T/.test(str)) return new Date(str);
+  // Formato dd/mm/yyyy, HH:MM:SS (registrado pelo formulário)
   const m = str.match(/(\d{2})\/(\d{2})\/(\d{4}),?\s*(\d{2}):(\d{2})/);
   if (m) return new Date(`${m[3]}-${m[2]}-${m[1]}T${m[4]}:${m[5]}:00`);
-  // Formato yyyy-mm-dd
+  // yyyy-mm-dd simples
   const m2 = str.match(/(\d{4})-(\d{2})-(\d{2})/);
   if (m2) return new Date(`${m2[1]}-${m2[2]}-${m2[3]}T00:00:00`);
   return null;
+}
+
+// Dias corridos entre duas datas (sem contar horas)
+function diasEntreDatas(d1, d2) {
+  if (!d1 || !d2) return 0;
+  const a = new Date(d1.getFullYear(), d1.getMonth(), d1.getDate());
+  const b = new Date(d2.getFullYear(), d2.getMonth(), d2.getDate());
+  return Math.round((b - a) / (1000*60*60*24));
 }
 
 function formatarData(str) {
@@ -677,36 +685,65 @@ function badgeStatusHistorico(s) {
 }
 
 function calcularTempo(linha) {
-  const status = linha.status || 'Aguardando início';
+  const status = linha.status || 'Pendente';
   const recebido = parseBR(linha.dataEnvio);
   const iniciado = parseBR(linha.dataInicio);
   const concluido = parseBR(linha.dataConclusao);
   const devolvido = parseBR(linha.dataDevolucao);
+  const encaminhado = parseBR(linha.dataEncaminhamento);
   const hoje = new Date();
 
-  if (status === 'Concluído' && iniciado && concluido) {
-    const dias = Math.round((concluido - iniciado) / (1000*60*60*24));
-    const label = dias === 0 ? "no mesmo dia" : `em ${dias} dia${dias!==1?'s':''}` ; return `<span style="color:#2e7d32;font-weight:600">Concluído ${label}</span>`;
+  function fmt(dias) {
+    if (dias === 0) return 'hoje';
+    return `${dias} dia${dias !== 1 ? 's' : ''}`;
   }
-  if (status === 'Devolvido' && recebido && devolvido) {
-    const dias = Math.round((devolvido - recebido) / (1000*60*60*24));
-    return `<span style="color:#888;font-weight:600">Devolvido em ${dias} dia${dias!==1?'s':''}</span>`;
-  }
-  if (status === 'Aguardando CTIGI' || status === 'Aguardando SEFIN') {
-    const dataRef = devolvido || recebido;
-    if (dataRef) {
-      const dias = Math.round((new Date() - dataRef) / (1000*60*60*24));
-      return `<span style="color:#7b3fa0;font-weight:600">Enviado há ${dias} dia${dias!==1?'s':''}</span>`;
+
+  if (status === 'Concluído') {
+    // Tempo desta etapa: do início ao fim (ou do recebimento se não iniciou)
+    const inicio = iniciado || recebido;
+    if (inicio && concluido) {
+      const dias = diasEntreDatas(inicio, concluido);
+      const label = dias === 0 ? 'no mesmo dia' : `em ${fmt(dias)}`;
+      return `<span style="color:#2e7d32;font-weight:600">Concluído ${label}</span>`;
     }
-    return `<span style="color:#7b3fa0;font-weight:600">Enviado</span>`;
+    return `<span style="color:#2e7d32;font-weight:600">Concluído</span>`;
   }
-  if (status === 'Em andamento' && iniciado) {
-    const dias = Math.round((hoje - iniciado) / (1000*60*60*24));
-    return `<span style="color:#f9a825;font-weight:600">Iniciado há ${dias} dia${dias!==1?'s':''}</span>`;
+
+  if (status === 'Devolvido') {
+    const ref = devolvido || hoje;
+    if (recebido) {
+      const dias = diasEntreDatas(recebido, ref);
+      return `<span style="color:#888;font-weight:600">Devolvido em ${fmt(dias)}</span>`;
+    }
+    return `<span style="color:#888;font-weight:600">Devolvido</span>`;
   }
-  if (status === 'Pendente' && recebido) {
-    const dias = Math.round((hoje - recebido) / (1000*60*60*24));
-    return `<span style="color:#c62828;font-weight:600">Recebido há ${dias} dia${dias!==1?'s':''}</span>`;
+
+  if (status === 'Aguardando CTIGI' || status === 'Aguardando SEFIN') {
+    const ref = encaminhado || recebido;
+    if (ref) {
+      const dias = diasEntreDatas(ref, hoje);
+      const dest = status === 'Aguardando SEFIN' ? 'SEFIN' : 'CTIGI';
+      const label = dias === 0 ? 'hoje' : `há ${fmt(dias)}`;
+      return `<span style="color:#7b3fa0;font-weight:600">Enviado para ${dest} ${label}</span>`;
+    }
+    return `<span style="color:#7b3fa0;font-weight:600">${status}</span>`;
+  }
+
+  if (status === 'Em andamento') {
+    const ref = iniciado || recebido;
+    if (ref) {
+      const dias = diasEntreDatas(ref, hoje);
+      const label = dias === 0 ? 'hoje' : `há ${fmt(dias)}`;
+      return `<span style="color:#f9a825;font-weight:600">Em andamento ${label}</span>`;
+    }
+    return `<span style="color:#f9a825;font-weight:600">Em andamento</span>`;
+  }
+
+  // Pendente
+  if (recebido) {
+    const dias = diasEntreDatas(recebido, hoje);
+    const label = dias === 0 ? 'hoje' : `há ${fmt(dias)}`;
+    return `<span style="color:#c62828;font-weight:600">Recebido ${label}</span>`;
   }
   return '—';
 }
@@ -734,39 +771,45 @@ async function buscarHistorico() {
       return da - db;
     });
 
-    const primeira = parseBR(linhas[0].dataEnvio);
-    const ultimaLinha = linhas[linhas.length - 1];
     const hoje = new Date();
 
-    // Calcular dias aguardando CTIGI e SEFIN separadamente
+    // Usar a data de envio mais antiga como início real do processo
+    const primeira = parseBR(linhas[0].dataEnvio);
+
+    // Calcular dias com terceiros (CTIGI/SEFIN) para cada linha com encaminhamento
     let diasCtigi = 0, diasSefin = 0;
     linhas.forEach(l => {
-      const dataEnc = parseBR(l.dataEncaminhamento) || parseBR(l.dataDevolucao);
+      const dataEnc = parseBR(l.dataEncaminhamento);
       if (!dataEnc) return;
-      const org = l.destino ? l.destino
-                : l.status === 'Aguardando SEFIN' ? 'SEFIN'
-                : 'CTIGI';
-      const fimRef = (l.status === 'Concluído' && parseBR(l.dataConclusao)) ? parseBR(l.dataConclusao) : hoje;
-      const dias = Math.round((fimRef - dataEnc) / (1000*60*60*24));
+      const dest = l.destino || (l.status === 'Aguardando SEFIN' ? 'SEFIN' : 'CTIGI');
+      // Fim do período com terceiro: data de conclusão da linha (se concluída) ou hoje
+      const fimRef = (l.status === 'Concluído' && parseBR(l.dataConclusao))
+        ? parseBR(l.dataConclusao) : hoje;
+      const dias = diasEntreDatas(dataEnc, fimRef);
       if (dias <= 0) return;
-      if (org === 'SEFIN') diasSefin += dias;
+      if (dest === 'SEFIN') diasSefin += dias;
       else diasCtigi += dias;
     });
+
+    // Monta sufixo de terceiros
     let partesSufixo = [];
-    if (diasSefin > 0) partesSufixo.push(diasSefin + ' dia' + (diasSefin!==1?'s':'') + ' aguardando SEFIN');
-    if (diasCtigi > 0) partesSufixo.push(diasCtigi + ' dia' + (diasCtigi!==1?'s':'') + ' aguardando CTIGI');
-    const sufixoAguardando = partesSufixo.length > 0
-      ? ` <span style="color:#7b3fa0;font-size:12px">(incluindo ${partesSufixo.join(' + ')})</span>`
+    if (diasSefin > 0) partesSufixo.push(`${diasSefin} dia${diasSefin!==1?'s':''} c/ SEFIN`);
+    if (diasCtigi > 0) partesSufixo.push(`${diasCtigi} dia${diasCtigi!==1?'s':''} c/ CTIGI`);
+    const sufixoTerceiros = partesSufixo.length > 0
+      ? ` <span style="color:#7b3fa0;font-size:12px;font-weight:400">(${partesSufixo.join(' + ')})</span>`
       : '';
 
-
+    // Tempo total: da primeira entrada até conclusão final ou hoje
+    const ultimaLinha = linhas[linhas.length - 1];
     let tempoTotalHTML = '';
     if (ultimaLinha.status === 'Concluído' && parseBR(ultimaLinha.dataConclusao)) {
-      const dias = Math.round((parseBR(ultimaLinha.dataConclusao) - primeira) / (1000*60*60*24));
-      tempoTotalHTML = `<span style="color:#2e7d32;font-weight:600">✓ Concluído em ${dias} dia${dias!==1?'s':''} no total</span>${sufixoAguardando}`;
+      const dias = diasEntreDatas(primeira, parseBR(ultimaLinha.dataConclusao));
+      const label = dias === 0 ? 'no mesmo dia' : `em ${dias} dia${dias!==1?'s':''}`;
+      tempoTotalHTML = `<span style="color:#2e7d32;font-weight:600">✓ Concluído ${label}</span>${sufixoTerceiros}`;
     } else {
-      const dias = Math.round((hoje - primeira) / (1000*60*60*24));
-      tempoTotalHTML = `<span style="color:#e05020;font-weight:600">⏳ Aguardando início há ${dias} dia${dias!==1?'s':''} no total</span>${sufixoAguardando}`;
+      const dias = diasEntreDatas(primeira, hoje);
+      const label = dias === 0 ? 'hoje' : `há ${dias} dia${dias!==1?'s':''}`;
+      tempoTotalHTML = `<span style="color:#e05020;font-weight:600">⏳ Em aberto ${label}</span>${sufixoTerceiros}`;
     }
 
     const rows = linhas.map((l, i) => `
@@ -780,11 +823,10 @@ async function buscarHistorico() {
 
     container.innerHTML = `
       <div style="background:#fff;border-radius:12px;border:1px solid #dde1e5;overflow:hidden;margin-bottom:1rem;">
-        <div style="background:#0a8a7a;padding:12px 16px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
+        <div style="background:#0a8a7a;padding:12px 20px;display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
           <span style="color:white;font-weight:600;font-size:15px;">Processo ${num}</span>
-          <span style="color:white;font-size:13px;">${tempoTotalHTML.replace(/style="color:[^"]*"/g, 'style="color:white"')}</span>
+          <span style="color:white;font-size:13px;font-weight:500;">${tempoTotalHTML.replace(/style="color:[^"]*"/g,'style="color:white"').replace(/style="color:[^"]*;font-size:12px;font-weight:400"/g,'style="color:rgba(255,255,255,0.8);font-size:12px;font-weight:400"')}</span>
         </div>
-        <div style="padding:12px 16px;background:#f0faf8;border-bottom:1px solid #dde1e5;font-size:13px;">${tempoTotalHTML}</div>
         <div style="overflow-x:auto;">
           <table style="width:100%;border-collapse:collapse;font-size:13px;">
             <thead>
