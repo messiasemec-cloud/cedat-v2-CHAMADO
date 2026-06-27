@@ -530,11 +530,27 @@ function gerarPDFSemanal() {
   doc.line(mL, y, pW - mR, y);
 
   // ── RODAPÉ ───────────────────────────────────────────────
-  doc.setFont('helvetica', 'italic');
+  // Rodapé institucional
+  doc.setDrawColor(...CINZA);
+  doc.setLineWidth(0.2);
+  doc.line(mL, pH - 20, pW - mR, pH - 20);
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(...PRETO);
+  doc.text('PROCURADORIA GERAL DO MUNICÍPIO DE FORTALEZA', mL, pH - 16);
+  doc.setFont('helvetica', 'normal');
   doc.setFontSize(7.5);
   doc.setTextColor(...CINZA);
-  const hoje = new Date().toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
-  doc.text(`Gerado em ${hoje} · CEDAT/PROFAZ · Sistema de Controle de Processos`, pW/2, pH - 10, { align: 'center' });
+  doc.text('Rua Israel Bezerra, 570, Dionísio Torres. CEP 60135-460 Fortaleza - CE. Brasil.', mL, pH - 12);
+
+  // Data/hora geração
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(7);
+  const agora = new Date();
+  const hojeStr = agora.toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric'});
+  const horaStr = agora.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+  doc.text(`Gerado em ${hojeStr} às ${horaStr} · CEDAT/PROFAZ · Sistema de Controle de Processos`, pW - mR, pH - 12, { align: 'right' });
 
   // Faixa inferior
   doc.setFillColor(...VERDE);
