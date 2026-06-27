@@ -281,13 +281,28 @@ function trocarAba(id, el) {
 
 // ── PERÍODO ──────────────────────────────────────────
 function inicioSemana() {
-  const hoje = new Date();
-  const dia = hoje.getDay();
-  const diff = (dia === 0 ? -6 : 1 - dia);
-  const seg = new Date(hoje);
-  seg.setDate(hoje.getDate() + diff);
-  seg.setHours(0,0,0,0);
-  return seg;
+  // Semana CEDAT: sexta 12h até sexta 12h seguinte
+  const agora = new Date();
+  // Encontrar a sexta-feira mais recente às 12h
+  const d = new Date(agora);
+  // dia 0=dom,1=seg,2=ter,3=qua,4=qui,5=sex,6=sab
+  const diaSemana = d.getDay();
+  // Quantos dias voltar para chegar na sexta anterior (ou hoje se for sexta)
+  let diasParaVoltar;
+  if (diaSemana === 5) {
+    // Hoje é sexta — ver se já passou das 12h
+    const horaAtual = d.getHours() + d.getMinutes() / 60;
+    diasParaVoltar = horaAtual >= 12 ? 0 : 7; // se passou das 12h, esta sexta; senão, sexta passada
+  } else if (diaSemana === 6) {
+    diasParaVoltar = 1; // sábado → volta 1 dia
+  } else {
+    // dom=0 → volta 2, seg=1 → volta 3, ter=2 → volta 4, qua=3 → volta 5, qui=4 → volta 6
+    diasParaVoltar = (diaSemana + 2) % 7 === 0 ? 7 : (diaSemana === 0 ? 2 : diaSemana + 2);
+  }
+  const sexta = new Date(d);
+  sexta.setDate(d.getDate() - diasParaVoltar);
+  sexta.setHours(12, 0, 0, 0);
+  return sexta;
 }
 
 function filtrarPorPeriodo(lista, periodo, mesSel) {
