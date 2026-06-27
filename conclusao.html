@@ -279,6 +279,55 @@
       } else if (status === 'Em andamento') {
         area.innerHTML = `
           <button class="btn btn-concluir" onclick="registrarAcao('concluir')">✓ Confirmar conclusão</button>
+          <button class="btn" id="btnCorrigirAssunto" style="background:#185FA5;color:#fff;margin-top:8px">✏️ Corrigir assunto</button>
+          <div id="painelCorrigirAssunto" style="display:none;margin-top:12px;padding:1.25rem;background:#f0f4ff;border:1.5px solid #c5d3f0;border-radius:10px;">
+            <label style="font-size:11px;font-weight:600;color:#5a6472;text-transform:uppercase;display:block;margin-bottom:6px;">Selecione o assunto correto</label>
+            <select id="selectNovoAssunto" style="width:100%;padding:9px 12px;border:1.5px solid #dde1e5;border-radius:8px;font-size:13px;font-family:inherit;outline:none;margin-bottom:10px;">
+              <option value="">Selecione...</option>
+              <option value="Desjudicialização">Desjudicialização</option>
+              <option value="Prescrição / Remissão">Prescrição / Remissão</option>
+              <option value="Abandono de Causa / Falta de interesse de agir">Abandono de Causa / Falta de interesse de agir</option>
+              <option value="Ilegitimidade Passiva">Ilegitimidade Passiva</option>
+              <option value="Emenda à inicial">Emenda à inicial</option>
+              <option value="Imunidade/Isenção Tributária">Imunidade/Isenção Tributária</option>
+              <option value="Cumprimento de decisão liminar/sentença">Cumprimento de decisão liminar/sentença</option>
+              <option value="Depósito ou Bloqueio Judicial / Cálculo Retroativo">Depósito ou Bloqueio Judicial / Cálculo Retroativo</option>
+              <option value="Conversão de depósito em renda">Conversão de depósito em renda</option>
+              <option value="Litispendência">Litispendência</option>
+              <option value="Ajuste do valor da CDA">Ajuste do valor da CDA</option>
+              <option value="Ajuste no cadastro (erro no CPF ou no nome)">Ajuste no cadastro (erro no CPF ou no nome)</option>
+              <option value="Revisão de lançamento">Revisão de lançamento</option>
+              <option value="Análise dos fatos interruptivos da prescrição">Análise dos fatos interruptivos da prescrição</option>
+              <option value="Análise do histórico do sujeito passivo">Análise do histórico do sujeito passivo</option>
+              <option value="Habilitação de créditos (Falência)">Habilitação de créditos (Falência)</option>
+              <option value="Pesquisa inventariante/representante espólios">Pesquisa inventariante/representante espólios</option>
+              <option value="Pesquisa sucessão empresarial">Pesquisa sucessão empresarial</option>
+              <option value="Outros">Outros</option>
+              <option value="Extinção de créditos">Extinção de créditos</option>
+              <option value="Análise de prescrição">Análise de prescrição</option>
+              <option value="Compensação / Restituição">Compensação / Restituição</option>
+              <option value="Cancelamento de Protesto">Cancelamento de Protesto</option>
+              <option value="Análise do histórico dos créditos fiscais">Análise do histórico dos créditos fiscais</option>
+              <option value="Inscrição na Dívida Ativa (créditos não tributários)">Inscrição na Dívida Ativa (créditos não tributários)</option>
+              <option value="Suspensão de créditos fiscais">Suspensão de créditos fiscais</option>
+              <option value="Ofícios MPCE / Defensoria Pública / Delegacia">Ofícios MPCE / Defensoria Pública / Delegacia</option>
+              <option value="Ofícios PROJUD / PROURMA / PROLIC">Ofícios PROJUD / PROURMA / PROLIC</option>
+              <option value="Transação Tributária">Transação Tributária</option>
+              <option value="Outros">Outros</option>
+              <option value="Migração SIMAT">Migração SIMAT</option>
+              <option value="Migração FTP">Migração FTP</option>
+              <option value="Migração TCE/TCM/Multas">Migração TCE/TCM/Multas</option>
+              <option value="Emissão de Boletos">Emissão de Boletos</option>
+              <option value="Emissão de Extratos">Emissão de Extratos</option>
+              <option value="Juntada de processo administrativo">Juntada de processo administrativo</option>
+              <option value="Juntada de CDA(s)">Juntada de CDA(s)</option>
+              <option value="Ofícios SEFIN">Ofícios SEFIN</option>
+              <option value="Ofícios inscrição na Dívida Ativa – órgão de origem">Ofícios inscrição na Dívida Ativa – órgão de origem</option>
+              <option value="Informativos gerenciais">Informativos gerenciais</option>
+              <option value="Elaboração de documento de extinção de créditos SIMAT">Elaboração de documento de extinção de créditos SIMAT</option>
+            </select>
+            <button id="btnConfirmarAssunto" style="width:100%;padding:10px;background:#185FA5;color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">✏️ Confirmar correção</button>
+          </div>
           <button class="btn btn-terceiro" id="btnTerceiro" onclick="acaoTerceiro()">📤 Encaminhar para terceiro</button>
           <div class="painel-terceiro" id="painelTerceiro">
             <label>Destino</label>
@@ -461,6 +510,30 @@
 
     // Event delegation para botões de devolução
     document.addEventListener('click', function(e) {
+      if (e.target && e.target.id === 'btnCorrigirAssunto') {
+        const painel = document.getElementById('painelCorrigirAssunto');
+        if (painel) painel.style.display = painel.style.display === 'none' ? 'block' : 'none';
+      }
+
+      if (e.target && e.target.id === 'btnConfirmarAssunto') {
+        (async function() {
+          if (!processoAtual) return;
+          const novoTipo = document.getElementById('selectNovoAssunto').value;
+          if (!novoTipo) { showFeedback('Selecione o assunto correto.', 'error'); return; }
+          const url = SCRIPT_URL + '?aba=Entradas-v2&acao=corrigir&linha=' + processoAtual.linha
+            + '&tipo=' + encodeURIComponent(novoTipo);
+          try {
+            await fetch(url, { mode: 'no-cors' });
+            showFeedback('✏️ Assunto corrigido com sucesso!', 'success');
+            document.getElementById('resultado').style.display = 'none';
+            document.getElementById('numProcesso').value = '';
+            processoAtual = null;
+          } catch(err) {
+            showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
+          }
+        })();
+      }
+
       if (e.target && e.target.id === 'btnTerceiroCtigi') {
         const painel = document.getElementById('painelTerceiroCtigi');
         if (painel) painel.style.display = painel.style.display === 'none' ? 'block' : 'none';
