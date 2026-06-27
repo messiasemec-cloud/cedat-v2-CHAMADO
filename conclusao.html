@@ -35,8 +35,8 @@
     .btn-buscar:hover:not(:disabled) { background: var(--verde-escuro); }
     .btn-iniciar { background: var(--azul); color: var(--branco); }
     .btn-iniciar:hover:not(:disabled) { background: #1a8cbf; }
-    .btn-concluir { background: var(--laranja); color: var(--branco); }
-    .btn-concluir:hover:not(:disabled) { background: #c04010; }
+    .btn-concluir { background: var(--verde); color: var(--branco); }
+    .btn-concluir:hover:not(:disabled) { background: var(--verde-escuro); }
 
     .resultado { display: none; margin-top: 1.5rem; padding-top: 1.5rem; border-top: 1px solid var(--cinza-borda); }
     .resultado-titulo { font-size: 13px; font-weight: 600; color: var(--texto-sec); text-transform: uppercase; letter-spacing: 0.04em; margin-bottom: 12px; }
@@ -224,6 +224,9 @@
           c3.className = 'status-circle concluido'; c3.textContent = '✓'; n3.className = 'status-nome concluido';
           c4.className = 'status-circle concluido'; c4.textContent = '✓'; n4.className = 'status-nome concluido';
         }
+      } else if (status === 'Em acompanhamento') {
+        n2.textContent = 'Acompanham.';
+        l1.className = 'status-line ativo'; c2.className = 'status-circle ativo'; n2.className = 'status-nome ativo';
       } else {
         // Tracker de 3 etapas normal
         n3.textContent = 'Concluído';
@@ -282,7 +285,7 @@
       } else if (status === 'Em andamento') {
         area.innerHTML = `
           <button class="btn btn-concluir" onclick="registrarAcao('concluir')">✓ Confirmar conclusão</button>
-          <button class="btn" id="btnCorrigirAssunto" style="background:#185FA5;color:#fff;margin-top:8px">✏️ Corrigir assunto</button>
+          <button class="btn" id="btnCorrigirAssunto" style="background:var(--laranja);color:#fff;margin-top:8px">✏️ Corrigir assunto</button>
           <div id="painelCorrigirAssunto" style="display:none;margin-top:12px;padding:1.25rem;background:#f0f4ff;border:1.5px solid #c5d3f0;border-radius:10px;">
             <label style="font-size:11px;font-weight:600;color:#5a6472;text-transform:uppercase;display:block;margin-bottom:6px;">Selecione o assunto correto</label>
             <select id="selectNovoAssunto" style="width:100%;padding:9px 12px;border:1.5px solid #dde1e5;border-radius:8px;font-size:13px;font-family:inherit;outline:none;margin-bottom:10px;">
@@ -329,7 +332,7 @@
               <option value="Informativos gerenciais">Informativos gerenciais</option>
               <option value="Elaboração de documento de extinção de créditos SIMAT">Elaboração de documento de extinção de créditos SIMAT</option>
             </select>
-            <button id="btnConfirmarAssunto" style="width:100%;padding:10px;background:#185FA5;color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">✏️ Confirmar correção</button>
+            <button id="btnConfirmarAssunto" style="width:100%;padding:10px;background:var(--laranja);color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">✏️ Confirmar correção</button>
           </div>
           <button class="btn btn-terceiro" id="btnTerceiro" onclick="acaoTerceiro()">📤 Encaminhar para terceiro</button>
           <button class="btn btn-acompanhamento" id="btnAcompanhamento" onclick="registrarAcompanhamento()">👁 Em acompanhamento</button>
@@ -347,9 +350,6 @@
             <textarea id="modalMotivo" placeholder="Descreva brevemente o motivo..." oninput="verificarMotivo()"></textarea>
           </div>
         ` + btnDevolver;
-      } else if (status === 'Em acompanhamento') {
-        l1.className = 'status-line ativo'; c2.className = 'status-circle ativo'; n2.className = 'status-nome ativo';
-        n2.textContent = 'Acompanham.';
       } else if (status === 'Em acompanhamento') {
         area.innerHTML = `
           <div style="text-align:center;padding:10px;"><span class="badge-acompanhamento">👁 Em acompanhamento</span></div>
