@@ -365,7 +365,7 @@ function gerarPDFSemanal() {
   const PRETO = [26, 31, 36];
 
   const pW = 210, pH = 297;
-  const mL = 18, mR = 18, mT = 15;
+  const mL = 18, mR = 18, mT = 10;
   let y = mT;
 
   // ── FAIXA SUPERIOR ──────────────────────────────────────
@@ -383,7 +383,7 @@ function gerarPDFSemanal() {
   // Logo proporcional: 744x157px → ratio 4.74 → 90x19mm
   const logoW = 90, logoH = 19;
   try {
-    doc.addImage('data:image/png;base64,' + LOGO_PGM_B64, 'PNG', mL, y - 2, logoW, logoH);
+    doc.addImage('data:image/png;base64,' + LOGO_PGM_B64, 'PNG', mL, y - 5, logoW, logoH);
   } catch(e) {}
 
   // Título à direita alinhado verticalmente com o logo
@@ -547,13 +547,13 @@ function gerarPDFSemanal() {
   doc.setTextColor(...CINZA);
   doc.text('Rua Israel Bezerra, 570, Dionísio Torres. CEP 60135-460 Fortaleza - CE. Brasil.', mL, pH - 12);
 
-  // Data/hora geração
+  // Data/hora geração — linha separada abaixo
   doc.setFont('helvetica', 'italic');
   doc.setFontSize(7);
   const agora = new Date();
   const hojeStr = agora.toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric'});
   const horaStr = agora.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
-  doc.text(`Gerado em ${hojeStr} às ${horaStr} · CEDAT/PROFAZ · Sistema de Controle de Processos`, pW - mR, pH - 12, { align: 'right' });
+  doc.text(`Gerado em ${hojeStr} às ${horaStr} · CEDAT/PROFAZ · Sistema de Controle de Processos`, pW - mR, pH - 8, { align: 'right' });
 
   // Faixa inferior
   doc.setFillColor(...VERDE);
