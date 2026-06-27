@@ -710,11 +710,6 @@ function calcularTempo(linha) {
   }
 
   if (status === 'Devolvido') {
-    const ref = devolvido || hoje;
-    if (recebido) {
-      const dias = diasEntreDatas(recebido, ref);
-      return `<span style="color:#888;font-weight:600">Devolvido em ${fmt(dias)}</span>`;
-    }
     return `<span style="color:#888;font-weight:600">Devolvido</span>`;
   }
 
