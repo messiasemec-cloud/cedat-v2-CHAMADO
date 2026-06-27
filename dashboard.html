@@ -126,7 +126,8 @@
         <div class="scorecard-sub">processos concluídos</div>
       </div>
     </div>
-    <p style="font-size:11px;font-style:italic;color:#5a6472;margin-top:-8px;margin-bottom:12px;">* Processos devolvidos não são contabilizados nos totais acima.</p>
+    <p style="font-size:11px;font-style:italic;color:#5a6472;margin-top:-8px;margin-bottom:4px;">* Processos devolvidos não são contabilizados nos totais acima.</p>
+    <p style="font-size:11px;font-style:italic;color:#5a6472;margin-bottom:12px;">* Processos em acompanhamento possuem acordo de parcelamento ou negociação ativo e são monitorados pela CEDAT.</p>
     <div class="graficos" style="margin-top:0;">
       <div class="grafico-card">
         <div class="grafico-titulo">Distribuição por status (%)</div>
@@ -175,7 +176,8 @@
         <div class="scorecard-valor verde" id="pessoaSaidas">—</div>
       </div>
     </div>
-    <p style="font-size:11px;font-style:italic;color:#5a6472;margin-top:-8px;margin-bottom:12px;">* Processos devolvidos não são contabilizados nos totais acima.</p>
+    <p style="font-size:11px;font-style:italic;color:#5a6472;margin-top:-8px;margin-bottom:4px;">* Processos devolvidos não são contabilizados nos totais acima.</p>
+    <p style="font-size:11px;font-style:italic;color:#5a6472;margin-bottom:12px;">* Processos em acompanhamento possuem acordo de parcelamento ou negociação ativo e são monitorados pela CEDAT.</p>
     <div class="graficos" style="margin-top:1rem;">
       <div class="grafico-card full">
         <div class="grafico-titulo" id="tituloDiscoPessoa">Distribuição por status</div>
@@ -447,11 +449,11 @@ function renderGeral() {
   document.getElementById('totalEntradas').textContent = lista.length;
   document.getElementById('totalTerceiros').textContent = lista.filter(p => (p.status||'') === 'Aguardando CTIGI' || (p.status||'') === 'Aguardando SEFIN').length;
   document.getElementById('totalSaidas').textContent = lista.filter(p => (p.status||'') === 'Concluído').length;
-  document.getElementById('totalAberto').textContent = lista.filter(p => { const s = p.status||'Pendente'; return s === 'Pendente' || s === 'Em andamento'; }).length;
+  document.getElementById('totalAberto').textContent = lista.filter(p => { const s = p.status||'Pendente'; return s === 'Pendente' || s === 'Em andamento' || s === 'Em acompanhamento'; }).length;
 
-  const statusList = ['Aguardando início', 'Em andamento', 'Ag. CTIGI', 'Ag. SEFIN', 'Concluído', 'Devolvido'];
-  const cores = ['#c62828','#f9a825','#7b3fa0','#9c5fb5','#2e7d32','#888'];
-  const statusReal = ['Pendente', 'Em andamento', 'Aguardando CTIGI', 'Aguardando SEFIN', 'Concluído', 'Devolvido'];
+  const statusList = ['Aguardando início', 'Em andamento', 'Em acompanhamento', 'Ag. CTIGI', 'Ag. SEFIN', 'Concluído', 'Devolvido'];
+  const cores = ['#c62828','#f9a825','#0277bd','#7b3fa0','#9c5fb5','#2e7d32','#888'];
+  const statusReal = ['Pendente', 'Em andamento', 'Em acompanhamento', 'Aguardando CTIGI', 'Aguardando SEFIN', 'Concluído', 'Devolvido'];
   const counts = statusList.map((s,i) => lista.filter(p => (p.status||'Pendente') === statusReal[i]).length);
   criarRosca('chartStatusRosca', statusList, counts, cores);
   criarBarras('chartStatusBarras', statusList, [{
@@ -499,11 +501,12 @@ function renderPessoa() {
   const concluido = lista.filter(p => p.status === 'Concluído').length;
   const andamento = lista.filter(p => p.status === 'Em andamento').length;
   const pendente = lista.filter(p => p.status === 'Pendente').length;
+  const acomp = lista.filter(p => p.status === 'Em acompanhamento').length;
   const agCtigi = lista.filter(p => p.status === 'Aguardando CTIGI').length;
   const agSefin = lista.filter(p => p.status === 'Aguardando SEFIN').length;
 
   document.getElementById('pessoaEntradas').textContent = lista.length;
-  document.getElementById('pessoaAberto').textContent = andamento + pendente;
+  document.getElementById('pessoaAberto').textContent = andamento + pendente + acomp;
   document.getElementById('pessoaTerceiros').textContent = agCtigi + agSefin;
   document.getElementById('pessoaSaidas').textContent = concluido;
 
@@ -547,8 +550,8 @@ function renderPessoa() {
   charts['chartDiscoPessoa'] = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: ['Concluído', 'Em andamento', 'Aguardando início', 'Ag. CTIGI', 'Ag. SEFIN'].filter((l,i) => [concluido,andamento,pendente,agCtigi,agSefin][i] > 0),
-      datasets: [{ data: [concluido,andamento,pendente,agCtigi,agSefin].filter(v => v > 0), backgroundColor: ['#2e7d32','#f9a825','#c62828','#7b3fa0','#9c5fb5'].filter((_,i) => [concluido,andamento,pendente,agCtigi,agSefin][i] > 0), borderWidth: 0 }]
+      labels: ['Concluído', 'Em andamento', 'Aguardando início', 'Em acompanhamento', 'Ag. CTIGI', 'Ag. SEFIN'].filter((l,i) => [concluido,andamento,pendente,acomp,agCtigi,agSefin][i] > 0),
+      datasets: [{ data: [concluido,andamento,pendente,acomp,agCtigi,agSefin].filter(v => v > 0), backgroundColor: ['#2e7d32','#f9a825','#c62828','#0277bd','#7b3fa0','#9c5fb5'].filter((_,i) => [concluido,andamento,pendente,acomp,agCtigi,agSefin][i] > 0), borderWidth: 0 }]
     },
     options: {
       responsive: true,
@@ -694,7 +697,7 @@ function formatarData(str) {
 }
 
 function badgeStatusHistorico(s) {
-  const map = { 'Aguardando início': '#c62828', 'Em andamento': '#f9a825', 'Concluído': '#2e7d32', 'Devolvido': '#888', 'Aguardando CTIGI': '#7b3fa0', 'Aguardando SEFIN': '#7b3fa0' };
+  const map = { 'Aguardando início': '#c62828', 'Em andamento': '#f9a825', 'Em acompanhamento': '#0277bd', 'Concluído': '#2e7d32', 'Devolvido': '#888', 'Aguardando CTIGI': '#7b3fa0', 'Aguardando SEFIN': '#7b3fa0' };
   const cor = map[s] || '#888';
   return `<span style="display:inline-block;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;background:${cor}20;color:${cor}">${s||'Aguardando início'}</span>`;
 }

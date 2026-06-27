@@ -68,6 +68,9 @@
 
     @media (max-width: 500px) { .header-top { padding: 0.75rem 1rem; } .form-card { padding: 1.25rem; } .info-grid { grid-template-columns: 1fr; } }
     .btn-terceiro { background:#7b3fa0 !important;color:#fff !important;margin-top:8px; }
+    .btn-acompanhamento { background:#0277bd !important;color:#fff !important;margin-top:8px; }
+    .btn-acompanhamento:hover { background:#01579b !important; }
+    .badge-acompanhamento { display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;background:#e1f5fe;color:#0277bd; }
     .btn-terceiro:hover { background:#5c2d7a !important; }
     .badge-aguardando { display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;background:#ede7f6;color:#7b3fa0; }
     .painel-terceiro { display:none;margin-top:12px;padding:1.25rem;background:#f8f4fd;border:1.5px solid #ce93d8;border-radius:var(--radius); }
@@ -329,6 +332,7 @@
             <button id="btnConfirmarAssunto" style="width:100%;padding:10px;background:#185FA5;color:white;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit;">✏️ Confirmar correção</button>
           </div>
           <button class="btn btn-terceiro" id="btnTerceiro" onclick="acaoTerceiro()">📤 Encaminhar para terceiro</button>
+          <button class="btn btn-acompanhamento" id="btnAcompanhamento" onclick="registrarAcompanhamento()">👁 Em acompanhamento</button>
           <div class="painel-terceiro" id="painelTerceiro">
             <label>Destino</label>
             <select id="modalDestino" onchange="atualizarModal()">
@@ -342,6 +346,14 @@
             <label>Motivo do encaminhamento <span style="color:#c62828">*</span></label>
             <textarea id="modalMotivo" placeholder="Descreva brevemente o motivo..." oninput="verificarMotivo()"></textarea>
           </div>
+        ` + btnDevolver;
+      } else if (status === 'Em acompanhamento') {
+        l1.className = 'status-line ativo'; c2.className = 'status-circle ativo'; n2.className = 'status-nome ativo';
+        n2.textContent = 'Acompanham.';
+      } else if (status === 'Em acompanhamento') {
+        area.innerHTML = `
+          <div style="text-align:center;padding:10px;"><span class="badge-acompanhamento">👁 Em acompanhamento</span></div>
+          <button class="btn btn-concluir" onclick="registrarAcao('concluir')" style="margin-top:8px">✓ Confirmar conclusão</button>
         ` + btnDevolver;
       } else if (status === 'Aguardando CTIGI') {
         area.innerHTML = `
@@ -496,6 +508,21 @@
         await fetch(url, { mode: 'no-cors' });
         const p = document.getElementById('painelTerceiro'); if(p) p.classList.remove('aberto');
         showFeedback('📤 Encaminhado para ' + destino + ' com sucesso!', 'success');
+        document.getElementById('resultado').style.display = 'none';
+        document.getElementById('numProcesso').value = '';
+        processoAtual = null;
+      } catch(e) {
+        showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
+      }
+    }
+
+    async function registrarAcompanhamento() {
+      if (!processoAtual) return;
+      const agora = encodeURIComponent(new Date().toLocaleString('pt-BR'));
+      const url = SCRIPT_URL + '?aba=Entradas-v2&acao=acompanhamento&linha=' + processoAtual.linha + '&data=' + agora;
+      try {
+        await fetch(url, { mode: 'no-cors' });
+        showFeedback('👁 Processo marcado como Em acompanhamento!', 'success');
         document.getElementById('resultado').style.display = 'none';
         document.getElementById('numProcesso').value = '';
         processoAtual = null;
