@@ -820,17 +820,17 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
         legY += 6;
       });
 
-      // Notas (devolvidos e em acompanhamento)
-      let notaY = by + BLOCO_H - 10;
+      // Notas (devolvidos e em acompanhamento) — abaixo da legenda, à direita
+      let notaY = legY + 2;
       doc.setFont('helvetica', 'italic');
       doc.setFontSize(7);
       doc.setTextColor(...CINZA);
       if (d.devolvido > 0) {
-        doc.text(`* ${d.devolvido} processo${d.devolvido>1?'s':''} devolvido${d.devolvido>1?'s':''} não ${d.devolvido>1?'são':'é'} contabilizado${d.devolvido>1?'s':''} nos totais acima.`, mL, notaY);
+        doc.text(`* ${d.devolvido} processo${d.devolvido>1?'s':''} devolvido${d.devolvido>1?'s':''} não ${d.devolvido>1?'são':'é'} contabilizado${d.devolvido>1?'s':''} nos totais acima.`, legX, notaY);
         notaY += 4;
       }
       if (d.acomp > 0) {
-        doc.text(`* ${d.acomp} processo${d.acomp>1?'s':''} em acompanhamento: acordo de parcelamento ou negociação ativo, monitorado${d.acomp>1?'s':''} pela CEDAT.`, mL, notaY);
+        doc.text(`* ${d.acomp} processo${d.acomp>1?'s':''} em acompanhamento: monitorado${d.acomp>1?'s':''} pela CEDAT.`, legX, notaY);
       }
 
       // Linha divisória entre colaboradores
