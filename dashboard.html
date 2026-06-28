@@ -365,7 +365,7 @@ function gerarPDFSemanal() {
   const PRETO = [26, 31, 36];
 
   const pW = 210, pH = 297;
-  const mL = 9, mR = 9, mT = 5;
+  const mL = 18, mR = 18, mT = 22;
   let y = mT;
 
   // ── FAIXA SUPERIOR ──────────────────────────────────────
@@ -383,7 +383,7 @@ function gerarPDFSemanal() {
   // Logo proporcional: 744x157px → ratio 4.74 → 90x19mm
   const logoW = 130, logoH = 27;
   try {
-    doc.addImage('data:image/png;base64,' + LOGO_PGM_B64, 'PNG', 5, y - 8, logoW, logoH);
+    doc.addImage('data:image/png;base64,' + LOGO_PGM_B64, 'PNG', 5, y, logoW, logoH);
   } catch(e) {}
 
   // Título à direita alinhado verticalmente com o logo
