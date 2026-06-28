@@ -664,6 +664,196 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
   doc.setFillColor(...AZUL);
   doc.rect(pW * 0.75, pH - 4, pW * 0.25, 4, 'F');
 
+  // ── PÁGINAS POR COLABORADOR ─────────────────────────────
+  // Montar dados por colaborador
+  const dadosPorPessoa = {};
+  listaSemana.forEach(p => {
+    const nome = p.destinatario;
+    if (!nome) return;
+    if (!dadosPorPessoa[nome]) dadosPorPessoa[nome] = { entradas:0, andamento:0, aguardando:0, acomp:0, saidas:0, devolvido:0 };
+    dadosPorPessoa[nome].entradas++;
+    const s = p.status || 'Pendente';
+    if (s === 'Concluído') dadosPorPessoa[nome].saidas++;
+    else if (s === 'Em andamento') dadosPorPessoa[nome].andamento++;
+    else if (s === 'Em acompanhamento') dadosPorPessoa[nome].acomp++;
+    else if (s === 'Aguardando CTIGI' || s === 'Aguardando SEFIN') dadosPorPessoa[nome].aguardando++;
+    else if (s === 'Devolvido') dadosPorPessoa[nome].devolvido++;
+  });
+
+  // Ordenar por saídas decrescente
+  const pessoasOrdenadas = Object.entries(dadosPorPessoa)
+    .sort((a,b) => b[1].saidas - a[1].saidas || b[1].entradas - a[1].entradas);
+
+  // 3 colaboradores por página
+  const POR_PAGINA = 3;
+  const BLOCO_H = 82; // altura de cada bloco por colaborador em mm
+  const PIZZA_R = 22; // raio da pizza em mm
+  const PIZZA_X = pW / 2 - 10; // centro X da pizza
+  const COR_STATUS = {
+    'Concluído':        [46, 125, 50],
+    'Em andamento':     [249, 168, 37],
+    'Aguardando início':[198, 40, 40],
+    'Em acompanhamento':[2, 119, 189],
+    'Ag. CTIGI/SEFIN':  [123, 63, 160],
+    'Devolvido':        [136, 136, 136],
+  };
+
+  for (let i = 0; i < pessoasOrdenadas.length; i += POR_PAGINA) {
+    doc.addPage();
+    let py = 12;
+
+    // Mini cabeçalho
+    doc.setFillColor(...VERDE);
+    doc.rect(0, 0, pW, 2, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(9);
+    doc.setTextColor(...VERDE);
+    doc.text(`${tipoRelatorio} — Detalhamento por Colaborador`, mL, py);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(8);
+    doc.setTextColor(...CINZA);
+    doc.text(`Período: ${tituloPeriodo}`, pW - mR, py, { align: 'right' });
+    py += 8;
+
+    const grupo = pessoasOrdenadas.slice(i, i + POR_PAGINA);
+
+    grupo.forEach(([ nome, d ], gi) => {
+      const by = py + gi * BLOCO_H;
+
+      // Nome colaborador
+      doc.setFont('helvetica', 'bold');
+      doc.setFontSize(11);
+      doc.setTextColor(...PRETO);
+      doc.text(nome, mL, by + 6);
+
+      // Linha separadora
+      doc.setDrawColor(...VERDE);
+      doc.setLineWidth(0.3);
+      doc.line(mL, by + 8, pW - mR, by + 8);
+
+      // Scorecards (4 cards)
+      const scCards = [
+        { label: 'Entradas',   valor: d.entradas,  cor: AZUL },
+        { label: 'Em aberto',  valor: d.andamento + (d.acomp||0) + (d.aguardando||0), cor: LARANJA },
+        { label: 'C/ terceiros', valor: d.aguardando, cor: [123,63,160] },
+        { label: 'Saídas',     valor: d.saidas,    cor: VERDE },
+      ];
+      const scW = (pW - mL - mR - 9) / 4;
+      scCards.forEach((c, ci) => {
+        const sx = mL + ci * (scW + 3);
+        doc.setFillColor(245, 246, 247);
+        doc.roundedRect(sx, by + 11, scW, 14, 1.5, 1.5, 'F');
+        doc.setFont('helvetica', 'bold');
+        doc.setFontSize(14);
+        doc.setTextColor(...c.cor);
+        doc.text(String(c.valor), sx + scW/2, by + 20, { align: 'center' });
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(6.5);
+        doc.setTextColor(...CINZA);
+        doc.text(c.label, sx + scW/2, by + 23.5, { align: 'center' });
+      });
+
+      // Pizza
+      const pizzaCx = mL + 32;
+      const pizzaCy = by + 50;
+      const pizzaR = PIZZA_R;
+
+      // Montar fatias
+      const fatias = [];
+      if (d.saidas > 0)    fatias.push({ v: d.saidas,    cor: VERDE,        label: 'Concluído' });
+      if (d.andamento > 0) fatias.push({ v: d.andamento, cor: [249,168,37], label: 'Em andamento' });
+      if (d.acomp > 0)     fatias.push({ v: d.acomp,     cor: AZUL,         label: 'Em acompanhamento' });
+      if (d.aguardando > 0)fatias.push({ v: d.aguardando,cor: [123,63,160], label: 'Ag. CTIGI/SEFIN' });
+      const pendente = d.entradas - d.saidas - d.andamento - d.acomp - d.aguardando - (d.devolvido||0);
+      if (pendente > 0)    fatias.push({ v: pendente,    cor: [198,40,40],  label: 'Aguardando início' });
+      if (d.devolvido > 0) fatias.push({ v: d.devolvido, cor: [136,136,136],label: 'Devolvido' });
+
+      const total = fatias.reduce((s,f) => s+f.v, 0);
+      if (total > 0) {
+        let angulo = -Math.PI / 2;
+        fatias.forEach(f => {
+          const sweep = (f.v / total) * 2 * Math.PI;
+          // jsPDF não tem arc nativo para fatias preenchidas — usar aproximação com linhas
+          // Desenhar fatia como polígono
+          const pts = [[pizzaCx, pizzaCy]];
+          const steps = Math.max(8, Math.round(sweep * 20));
+          for (let s = 0; s <= steps; s++) {
+            const a = angulo + (sweep * s / steps);
+            pts.push([
+              pizzaCx + pizzaR * Math.cos(a),
+              pizzaCy + pizzaR * Math.sin(a)
+            ]);
+          }
+          doc.setFillColor(...f.cor);
+          doc.setDrawColor(255,255,255);
+          doc.setLineWidth(0.5);
+          // Desenhar polígono preenchido
+          doc.moveTo(pts[0][0], pts[0][1]);
+          const ptsFlat = pts.flatMap(p => p);
+          // Usar lines para polígono
+          doc.setFillColor(...f.cor);
+          const lineArr = pts.slice(1).map((p,idx) => {
+            const prev = idx === 0 ? pts[0] : pts[idx];
+            return [p[0]-prev[0], p[1]-prev[1]];
+          });
+          // jsPDF lines
+          doc.lines(lineArr, pts[0][0], pts[0][1], [1,1], 'F', true);
+          angulo += sweep;
+        });
+
+        // Buraco central (donut)
+        doc.setFillColor(255,255,255);
+        doc.circle(pizzaCx, pizzaCy, pizzaR * 0.5, 'F');
+      }
+
+      // Legenda à direita da pizza
+      const legX = mL + 70;
+      let legY = by + 32;
+      fatias.forEach(f => {
+        const pct = total > 0 ? Math.round(f.v/total*100) : 0;
+        doc.setFillColor(...f.cor);
+        doc.rect(legX, legY - 2.5, 6, 3, 'F');
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(7.5);
+        doc.setTextColor(...PRETO);
+        doc.text(`${f.label}: ${f.v} (${pct}%)`, legX + 8, legY);
+        legY += 6;
+      });
+
+      // Linha divisória entre colaboradores
+      if (gi < grupo.length - 1) {
+        doc.setDrawColor(220, 220, 220);
+        doc.setLineWidth(0.2);
+        doc.line(mL, by + BLOCO_H - 2, pW - mR, by + BLOCO_H - 2);
+      }
+    });
+
+    // Rodapé da página
+    doc.setDrawColor(...CINZA);
+    doc.setLineWidth(0.2);
+    doc.line(mL, pH - 20, pW - mR, pH - 20);
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(8);
+    doc.setTextColor(...PRETO);
+    doc.text('PROCURADORIA GERAL DO MUNICÍPIO DE FORTALEZA', mL, pH - 16);
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(7.5);
+    doc.setTextColor(...CINZA);
+    doc.text('Rua Israel Bezerra, 570, Dionísio Torres. CEP 60135-460 Fortaleza - CE. Brasil.', mL, pH - 12);
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(7);
+    const agoraP = new Date();
+    const hojeStrP = agoraP.toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric'});
+    const horaStrP = agoraP.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
+    doc.text(`Gerado em ${hojeStrP} às ${horaStrP} · CEDAT/PROFAZ · Sistema de Controle de Processos`, pW - mR, pH - 8, { align: 'right' });
+    doc.setFillColor(...VERDE);
+    doc.rect(0, pH - 4, pW * 0.4, 4, 'F');
+    doc.setFillColor(...LARANJA);
+    doc.rect(pW * 0.4, pH - 4, pW * 0.35, 4, 'F');
+    doc.setFillColor(...AZUL);
+    doc.rect(pW * 0.75, pH - 4, pW * 0.25, 4, 'F');
+  }
+
   // ── SALVAR ───────────────────────────────────────────────
   const periodo = `${fmtData(inicioSem).replace(/\//g,'-')}_${fmtData(fimSem).replace(/\//g,'-')}`;
   const prefixo = mensal ? 'Relatorio_Mensal_CEDAT' : 'Relatorio_Semanal_CEDAT';
