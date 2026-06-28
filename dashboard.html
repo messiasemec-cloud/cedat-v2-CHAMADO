@@ -381,9 +381,9 @@ function gerarPDFSemanal() {
 
   // Logo ocupa metade esquerda do cabeçalho
   // Logo proporcional: 744x157px → ratio 4.74 → 90x19mm
-  const logoW = 180, logoH = 40;
+  const logoW = 130, logoH = 27;
   try {
-    doc.addImage('data:image/png;base64,' + LOGO_PGM_B64, 'PNG', mL, y - 0, logoW, logoH);
+    doc.addImage('data:image/png;base64,' + LOGO_PGM_B64, 'PNG', 5, y - 8, logoW, logoH);
   } catch(e) {}
 
   // Título à direita alinhado verticalmente com o logo
