@@ -734,7 +734,7 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
       // Scorecards (4 cards)
       const scCards = [
         { label: 'Entradas',   valor: d.entradas,  cor: AZUL },
-        { label: 'Em aberto',  valor: d.andamento + (d.acomp||0) + (d.aguardando||0), cor: LARANJA },
+        { label: 'Em aberto',  valor: d.entradas - d.saidas - (d.devolvido||0), cor: LARANJA },
         { label: 'C/ terceiros', valor: d.aguardando, cor: [123,63,160] },
         { label: 'Saídas',     valor: d.saidas,    cor: VERDE },
       ];
