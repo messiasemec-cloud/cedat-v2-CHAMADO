@@ -573,18 +573,12 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
   ranking.forEach((r, i) => {
     const ry = y + i * rowH;
 
-    // Posição (número)
-    doc.setFont('helvetica', 'bold');
-    doc.setFontSize(8);
-    doc.setTextColor(...CINZA);
-    doc.text(`${i+1}º`, mL, ry + 5);
-
     // Nome
     doc.setFont('helvetica', i === 0 ? 'bold' : 'normal');
     doc.setFontSize(8.5);
     doc.setTextColor(...PRETO);
-    const nomeAbrev = r.nome.length > 18 ? r.nome.substring(0,16) + '…' : r.nome;
-    doc.text(nomeAbrev, mL + 8, ry + 5);
+    const nomeAbrev = r.nome.length > 22 ? r.nome.substring(0,20) + '…' : r.nome;
+    doc.text(nomeAbrev, mL, ry + 5);
 
     // Barra entradas (azul)
     const wE = r.entradas > 0 ? (r.entradas / maxVal) * barAreaW : 0;
