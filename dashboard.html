@@ -383,7 +383,7 @@ function gerarPDFSemanal() {
   // Logo proporcional: 744x157px → ratio 4.74 → 90x19mm
   const logoW = 180, logoH = 40;
   try {
-    doc.addImage('data:image/png;base64,' + LOGO_PGM_B64, 'PNG', mL, y - 5, logoW, logoH);
+    doc.addImage('data:image/png;base64,' + LOGO_PGM_B64, 'PNG', mL, y - 2, logoW, logoH);
   } catch(e) {}
 
   // Título à direita alinhado verticalmente com o logo
