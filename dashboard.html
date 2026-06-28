@@ -826,7 +826,7 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
       doc.setFontSize(7);
       doc.setTextColor(...CINZA);
       if (d.devolvido > 0) {
-        doc.text(`* ${d.devolvido} processo${d.devolvido>1?'s':''} devolvido${d.devolvido>1?'s':''} não ${d.devolvido>1?'são':'é'} contabilizado${d.devolvido>1?'s':''} nos totais acima.`, legX, notaY);
+        doc.text('* Processos devolvidos não são contabilizados nos totais acima.', legX, notaY);
         notaY += 4;
       }
       if (d.acomp > 0) {
