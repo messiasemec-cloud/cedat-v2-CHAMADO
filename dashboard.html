@@ -543,7 +543,7 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
   doc.setFont('helvetica', 'bold');
   doc.setFontSize(10);
   doc.setTextColor(...PRETO);
-  doc.text('Saídas da Semana por Colaborador', mL, y);
+  doc.text(mensal ? 'Saídas por Colaborador' : 'Saídas da Semana por Colaborador', mL, y);
   y += 6;
 
   // ── RANKING (barras horizontais) ─────────────────────────
