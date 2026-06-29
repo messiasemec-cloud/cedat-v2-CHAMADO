@@ -518,26 +518,136 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
 
   // ── SCORECARDS ──────────────────────────────────────────
   const cards = [
-    { label: 'Entradas', valor: totEntradas, cor: AZUL },
-    { label: 'Saídas', valor: totSaidas, cor: VERDE },
-    { label: 'Em aberto', valor: totAberto, cor: LARANJA },
-    { label: 'Com terceiros', valor: totTerceiros, cor: [123, 63, 160] },
+    { label: 'Total de Entradas',  sublabel: 'processos cadastrados',     valor: totEntradas,   cor: AZUL },
+    { label: 'Aguardando Início',  sublabel: 'pendentes + em andamento',  valor: totAberto,     cor: LARANJA },
+    { label: 'Com Terceiros',      sublabel: 'aguardando CTIGI / SEFIN',  valor: totTerceiros,  cor: [123,63,160] },
+    { label: 'Total de Saídas',    sublabel: 'processos concluídos',      valor: totSaidas,     cor: VERDE },
   ];
   const cW = (pW - mL - mR - 9) / 4;
   cards.forEach((c, i) => {
     const x = mL + i * (cW + 3);
-    doc.setFillColor(245, 246, 247);
-    doc.roundedRect(x, y, cW, 18, 2, 2, 'F');
+    doc.setFillColor(255,255,255);
+    doc.setDrawColor(221,225,229);
+    doc.setLineWidth(0.3);
+    doc.roundedRect(x, y, cW, 22, 2, 2, 'FD');
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6.5);
+    doc.setTextColor(...CINZA);
+    doc.text(c.label.toUpperCase(), x + cW/2, y + 6, { align: 'center' });
     doc.setFont('helvetica', 'bold');
-    doc.setFontSize(18);
+    doc.setFontSize(20);
     doc.setTextColor(...c.cor);
-    doc.text(String(c.valor), x + cW/2, y + 11, { align: 'center' });
+    doc.text(String(c.valor), x + cW/2, y + 15, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(6);
+    doc.setTextColor(...CINZA);
+    doc.text(c.sublabel, x + cW/2, y + 20, { align: 'center' });
+  });
+  y += 28;
+
+  // ── NOTA DEVOLVIDOS ──────────────────────────────────────
+  doc.setFont('helvetica', 'italic');
+  doc.setFontSize(7);
+  doc.setTextColor(...CINZA);
+  doc.text('* Processos devolvidos não são contabilizados nos totais acima.', mL, y);
+  y += 7;
+
+  // ── GRÁFICOS: PIZZA + BARRAS ─────────────────────────────
+  const statusLabels = ['Aguardando início','Em andamento','Em acompanhamento','Ag. CTIGI','Ag. SEFIN','Concluído','Devolvido'];
+  const statusReal   = ['Pendente','Em andamento','Em acompanhamento','Aguardando CTIGI','Aguardando SEFIN','Concluído','Devolvido'];
+  const coresStatus  = [[198,40,40],[249,168,37],[2,119,189],[123,63,160],[156,95,181],[46,125,50],[136,136,136]];
+  const counts = statusReal.map(s => listaSemana.filter(p => (p.status||'Pendente') === s).length);
+  const totalStatus = counts.reduce((a,b) => a+b, 0);
+
+  // Pizza (lado esquerdo)
+  const pizzaCx2 = mL + 28, pizzaCy2 = y + 30, pizzaR2 = 24;
+  let angPizza2 = -Math.PI / 2;
+  counts.forEach((cnt, si) => {
+    if (cnt === 0) return;
+    const sweep = (cnt / totalStatus) * 2 * Math.PI;
+    const steps = Math.max(8, Math.round(sweep * 20));
+    const pts = [[pizzaCx2, pizzaCy2]];
+    for (let s2 = 0; s2 <= steps; s2++) {
+      const a = angPizza2 + (sweep * s2 / steps);
+      pts.push([pizzaCx2 + pizzaR2 * Math.cos(a), pizzaCy2 + pizzaR2 * Math.sin(a)]);
+    }
+    const lineArr = pts.slice(1).map((p,idx) => {
+      const prev = idx === 0 ? pts[0] : pts[idx];
+      return [p[0]-prev[0], p[1]-prev[1]];
+    });
+    doc.setFillColor(...coresStatus[si]);
+    doc.lines(lineArr, pts[0][0], pts[0][1], [1,1], 'F', true);
+    angPizza2 += sweep;
+  });
+  doc.setFillColor(255,255,255);
+  doc.circle(pizzaCx2, pizzaCy2, pizzaR2 * 0.5, 'F');
+
+  // Título pizza
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(...PRETO);
+  doc.text('Distribuição por status (%)', mL, y);
+
+  // Legenda pizza
+  let legPY = y + 8;
+  const legPX = mL + 60;
+  counts.forEach((cnt, si) => {
+    if (cnt === 0) return;
+    const pct = Math.round(cnt/totalStatus*100);
+    doc.setFillColor(...coresStatus[si]);
+    doc.rect(legPX, legPY - 2.5, 5, 3, 'F');
     doc.setFont('helvetica', 'normal');
     doc.setFontSize(7.5);
-    doc.setTextColor(...CINZA);
-    doc.text(c.label, x + cW/2, y + 16, { align: 'center' });
+    doc.setTextColor(...PRETO);
+    doc.text(`${statusLabels[si]} (${pct}%)`, legPX + 7, legPY);
+    legPY += 5.5;
   });
-  y += 24;
+
+  // Barras verticais (lado direito)
+  const barX0 = pW/2 + 10;
+  const barsAtivos = counts.map((c,i) => ({c, i})).filter(x => x.c > 0);
+  const barW2 = (pW - mR - barX0) / barsAtivos.length;
+  const barMaxH = 50;
+  const barMaxVal2 = Math.max(...counts, 1);
+  const barBaseY2 = y + 62;
+
+  doc.setFont('helvetica', 'bold');
+  doc.setFontSize(8);
+  doc.setTextColor(...PRETO);
+  doc.text('Quantidades por status', barX0, y);
+
+  barsAtivos.forEach(({c: cnt, i: si}, barIdx) => {
+    const bx = barX0 + barIdx * barW2 + 1;
+    const bh = (cnt / barMaxVal2) * barMaxH;
+    doc.setFillColor(...coresStatus[si]);
+    doc.rect(bx, barBaseY2 - bh, barW2 - 2, bh, 'F');
+    doc.setFont('helvetica', 'bold');
+    doc.setFontSize(6.5);
+    doc.setTextColor(...coresStatus[si]);
+    doc.text(String(cnt), bx + (barW2-2)/2, barBaseY2 - bh - 2, { align: 'center' });
+    doc.setFont('helvetica', 'normal');
+    doc.setFontSize(5.5);
+    doc.setTextColor(...CINZA);
+    const lbl = statusLabels[si].replace('Aguardando ','Ag. ').replace('Em acompanhamento','Em acomp.');
+    doc.text(lbl, bx + (barW2-2)/2, barBaseY2 + 3.5, { align: 'center', maxWidth: barW2 });
+  });
+
+  y += 74;
+
+  // ── NOTA EM ACOMPANHAMENTO ───────────────────────────────
+  if (counts[2] > 0) {
+    doc.setFont('helvetica', 'italic');
+    doc.setFontSize(7);
+    doc.setTextColor(...CINZA);
+    doc.text('* Processos em acompanhamento possuem acordo de parcelamento ou negociação ativo e são monitorados pela CEDAT.', mL, y);
+    y += 6;
+  }
+
+  // ── LINHA SEPARADORA ────────────────────────────────────
+  doc.setDrawColor(...VERDE);
+  doc.setLineWidth(0.4);
+  doc.line(mL, y, pW - mR, y);
+  y += 6;
 
   // ── TÍTULO RANKING ───────────────────────────────────────
   doc.setFont('helvetica', 'bold');
