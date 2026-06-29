@@ -294,9 +294,9 @@ function inicioSemana() {
   // Quantos dias voltar para chegar na sexta anterior (ou hoje se for sexta)
   let diasParaVoltar;
   if (diaSemana === 5) {
-    // Hoje é sexta — ver se já passou das 12h
+    // Hoje é sexta — ver se já passou das 17h
     const horaAtual = d.getHours() + d.getMinutes() / 60;
-    diasParaVoltar = horaAtual >= 12 ? 0 : 7; // se passou das 12h, esta sexta; senão, sexta passada
+    diasParaVoltar = horaAtual >= 17 ? 0 : 7; // se passou das 17h, esta sexta; senão, sexta passada
   } else if (diaSemana === 6) {
     diasParaVoltar = 1; // sábado → volta 1 dia
   } else {
@@ -305,7 +305,7 @@ function inicioSemana() {
   }
   const sexta = new Date(d);
   sexta.setDate(d.getDate() - diasParaVoltar);
-  sexta.setHours(12, 0, 0, 0);
+  sexta.setHours(17, 0, 0, 0);
   return sexta;
 }
 
