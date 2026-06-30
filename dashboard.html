@@ -387,14 +387,14 @@ function gerarSemanasDoMes(ano, mes) {
   // Voltar até a sexta-feira (dia 5)
   const diasVoltar = diaSem >= 5 ? diaSem - 5 : diaSem + 2;
   sexta.setDate(sexta.getDate() - diasVoltar);
-  sexta.setHours(12, 0, 0, 0);
+  sexta.setHours(17, 0, 0, 0);
 
   const ultimoDia = new Date(ano, mes + 1, 0); // último dia do mês
 
   while (sexta <= ultimoDia) {
     const fimSemana = new Date(sexta);
     fimSemana.setDate(fimSemana.getDate() + 7);
-    fimSemana.setHours(12, 0, 0, 0);
+    fimSemana.setHours(17, 0, 0, 0);
     semanas.push({ inicio: new Date(sexta), fim: new Date(fimSemana) });
     sexta.setDate(sexta.getDate() + 7);
   }
