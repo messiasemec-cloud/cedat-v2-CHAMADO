@@ -507,7 +507,11 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
   // ── DADOS DA SEMANA ─────────────────────────────────────
   const listaSemana = todosProcessos.filter(p => {
     const d = parseBR(p.dataEnvio);
-    return d && d >= inicioSem && d < fimSem;
+    if (!d) return false;
+    // Para período atual (sem parâmetros), usar mesma lógica do dash: só >= início, sem teto
+    if (!inicioParam) return d >= inicioSem;
+    // Para período histórico selecionado, usar intervalo fechado
+    return d >= inicioSem && d < fimSem;
   });
 
   // Totais gerais
