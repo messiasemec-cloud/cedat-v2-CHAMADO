@@ -840,11 +840,11 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
       // Nome + cargo colaborador
       const cargo = cargos[nome] || '';
       // Nome - cargo numa string só
-      doc.setFontSize(10);
+      doc.setFontSize(9);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...PRETO);
       const nomeComCargo = cargo ? `${nome}  -  ${cargo}` : nome;
-      doc.text(nomeComCargo, mL, by + 7, { maxWidth: pW - mL - mR });
+      doc.text(nomeComCargo, mL, by + 7);
       // Linha separadora
       doc.setDrawColor(...VERDE);
       doc.setLineWidth(0.3);
