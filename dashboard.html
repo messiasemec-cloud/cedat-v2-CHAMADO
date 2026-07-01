@@ -839,27 +839,24 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
 
       // Nome + cargo colaborador
       const cargo = cargos[nome] || '';
-      // Nome em bold grande
+      // Nome + cargo na mesma linha
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(11);
       doc.setTextColor(...PRETO);
       doc.text(nome, mL, by + 7);
-      // Cargo em linha abaixo — y fixo separado do nome
       if (cargo) {
+        // Calcular largura do nome para posicionar cargo ao lado
+        doc.setFontSize(11);
+        const nomeW = doc.getStringUnitWidth(nome) * 11 / doc.internal.scaleFactor;
         doc.setFont('helvetica', 'normal');
-        doc.setFontSize(8);
+        doc.setFontSize(9);
         doc.setTextColor(...CINZA);
-        doc.text('', mL, by + 13);
+        doc.text(' - ' + cargo, mL + nomeW, by + 7);
       }
-      doc.setFont('helvetica', 'normal');
-      doc.setFontSize(8);
-      doc.setTextColor(90, 100, 114);
-      if (cargo) { doc.text('- ' + cargo, mL, by + 14);
-      }
-      // Linha separadora abaixo do cargo
+      // Linha separadora
       doc.setDrawColor(...VERDE);
       doc.setLineWidth(0.3);
-      doc.line(mL, by + 16, pW - mR, by + 16);
+      doc.line(mL, by + 10, pW - mR, by + 10);
 
 
 
