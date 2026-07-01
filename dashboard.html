@@ -839,21 +839,24 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
 
       // Nome + cargo colaborador
       const cargo = cargos[nome] || '';
+      // Nome em bold grande
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(11);
       doc.setTextColor(...PRETO);
-      doc.text(nome, mL, by + 6);
+      doc.text(nome, mL, by + 7);
+      // Cargo em linha abaixo — y fixo separado do nome
       if (cargo) {
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8);
         doc.setTextColor(...CINZA);
-        doc.text(`- ${cargo}`, mL, by + 12);
+        doc.text(`- ${cargo}`, mL, by + 13);
       }
-
-      // Linha separadora
+      // Linha separadora abaixo do cargo
       doc.setDrawColor(...VERDE);
       doc.setLineWidth(0.3);
-      doc.line(mL, by + 15, pW - mR, by + 15);
+      doc.line(mL, by + 16, pW - mR, by + 16);
+
+
 
       // Scorecards (4 cards)
       const scCards = [
