@@ -608,7 +608,7 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
   });
 
   // Barras verticais (lado direito)
-  const barX0 = pW/2 + 10;
+  const barX0 = pW/2 + 20;
   const barsAtivos = counts.map((c,i) => ({c, i})).filter(x => x.c > 0);
   const barW2 = (pW - mR - barX0) / barsAtivos.length;
   const barMaxH = 50;
@@ -725,22 +725,17 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
 
   // ── LEGENDA ──────────────────────────────────────────────
   doc.setFillColor(...AZUL);
-  doc.rect(mL, y, 8, 3, 'F');
+  doc.rect(mL, y, 7, 2.5, 'F');
   doc.setFont('helvetica', 'normal');
-  doc.setFontSize(7.5);
+  doc.setFontSize(7);
   doc.setTextColor(...CINZA);
-  doc.text('Entradas', mL + 10, y + 2.5);
+  doc.text('Entradas', mL + 9, y + 2);
 
   doc.setFillColor(...VERDE);
-  doc.rect(mL + 35, y, 8, 3, 'F');
-  doc.text('Saídas (Concluídos)', mL + 45, y + 2.5);
+  doc.rect(mL + 33, y, 7, 2.5, 'F');
+  doc.text('Saídas (Concluídos)', mL + 42, y + 2);
 
-  y += 10;
-
-  // ── LINHA FINAL ──────────────────────────────────────────
-  doc.setDrawColor(...VERDE);
-  doc.setLineWidth(0.3);
-  doc.line(mL, y, pW - mR, y);
+  y += 6;
 
   // ── RODAPÉ ───────────────────────────────────────────────
   // Rodapé institucional
