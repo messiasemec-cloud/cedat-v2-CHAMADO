@@ -849,7 +849,12 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(8);
         doc.setTextColor(...CINZA);
-        doc.text(`- ${cargo}`, mL, by + 13);
+        doc.text('', mL, by + 13);
+      }
+      doc.setFont('helvetica', 'normal');
+      doc.setFontSize(8);
+      doc.setTextColor(90, 100, 114);
+      if (cargo) { doc.text('- ' + cargo, mL, by + 14);
       }
       // Linha separadora abaixo do cargo
       doc.setDrawColor(...VERDE);
