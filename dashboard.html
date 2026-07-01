@@ -863,7 +863,7 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
       scCards.forEach((c, ci) => {
         const sx = mL + ci * (scW + 3);
         doc.setFillColor(245, 246, 247);
-        doc.roundedRect(sx, by + 11, scW, 14, 1.5, 1.5, 'F');
+        doc.roundedRect(sx, by + 7, scW, 14, 1.5, 1.5, 'F');
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(14);
         doc.setTextColor(...c.cor);
