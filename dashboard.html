@@ -870,20 +870,20 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
       scCards.forEach((c, ci) => {
         const sx = mL + ci * (scW + 3);
         doc.setFillColor(245, 246, 247);
-        doc.roundedRect(sx, by + 18, scW, 14, 1.5, 1.5, 'F');
+        doc.roundedRect(sx, by + 20, scW, 14, 1.5, 1.5, 'F');
         doc.setFont('helvetica', 'bold');
         doc.setFontSize(14);
         doc.setTextColor(...c.cor);
-        doc.text(String(c.valor), sx + scW/2, by + 27, { align: 'center' });
+        doc.text(String(c.valor), sx + scW/2, by + 29, { align: 'center' });
         doc.setFont('helvetica', 'normal');
         doc.setFontSize(6.5);
         doc.setTextColor(...CINZA);
-        doc.text(c.label, sx + scW/2, by + 30.5, { align: 'center' });
+        doc.text(c.label, sx + scW/2, by + 32.5, { align: 'center' });
       });
 
       // Pizza
       const pizzaCx = mL + 32;
-      const pizzaCy = by + 50;
+      const pizzaCy = by + 56;
       const pizzaR = PIZZA_R;
 
       // Montar fatias
@@ -936,7 +936,7 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
 
       // Legenda à direita da pizza
       const legX = mL + 70;
-      let legY = by + 32;
+      let legY = by + 38;
       fatias.forEach(f => {
         const pct = total > 0 ? Math.round(f.v/total*100) : 0;
         doc.setFillColor(...f.cor);
