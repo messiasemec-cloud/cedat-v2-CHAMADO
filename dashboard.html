@@ -839,17 +839,17 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
 
       // Nome + cargo colaborador
       const cargo = cargos[nome] || '';
-      // Nome bold + cargo normal — mesmo Y, posição X sequencial
+      // Nome bold + cargo normal na mesma linha
       doc.setFontSize(11);
       doc.setFont('helvetica', 'bold');
       doc.setTextColor(...PRETO);
+      // Calcular largura do nome ANTES de mudar a fonte
+      const nomeWidthMM = doc.getTextWidth(nome);
       doc.text(nome, mL, by + 7);
       if (cargo) {
         doc.setFontSize(9);
         doc.setFont('helvetica', 'normal');
         doc.setTextColor(...CINZA);
-        // X = mL + largura do nome em mm
-        const nomeWidthMM = doc.getTextWidth(nome);
         doc.text(' - ' + cargo, mL + nomeWidthMM, by + 7);
       }
       // Linha separadora
