@@ -768,6 +768,19 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
   doc.setFillColor(...AZUL);
   doc.rect(pW * 0.75, pH - 4, pW * 0.25, 4, 'F');
 
+  // ── MAPA DE CARGOS ──────────────────────────────────────
+  const cargos = {
+    'Samuel Bezerra':    'Assistente de Apoio à Gestão',
+    'André Felipe':      'Analista Fazendário - SEFIN',
+    'Emanuel Sales':     'Analista da PGM',
+    'Letícia Melo':      'Assistente de Apoio à Gestão',
+    'Romário Nascimento':'Analista da PGM',
+    'Juliana Silva':     'Assistente de Apoio à Gestão',
+    'Pedro Gabriel':     'Estagiário',
+    'Mayra Germana':     'Chefe CEDAT',
+    'Nathalia Fernandes':'Serviço de Apoio Administrativo',
+  };
+
   // ── PÁGINAS POR COLABORADOR ─────────────────────────────
   // Montar dados por colaborador
   const dadosPorPessoa = {};
@@ -824,11 +837,18 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
     grupo.forEach(([ nome, d ], gi) => {
       const by = py + gi * BLOCO_H;
 
-      // Nome colaborador
+      // Nome + cargo colaborador
+      const cargo = cargos[nome] || '';
       doc.setFont('helvetica', 'bold');
       doc.setFontSize(11);
       doc.setTextColor(...PRETO);
       doc.text(nome, mL, by + 6);
+      if (cargo) {
+        doc.setFont('helvetica', 'normal');
+        doc.setFontSize(8);
+        doc.setTextColor(...CINZA);
+        doc.text(`- ${cargo}`, mL + doc.getTextWidth(nome) + 2, by + 6);
+      }
 
       // Linha separadora
       doc.setDrawColor(...VERDE);
