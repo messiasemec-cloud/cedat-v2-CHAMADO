@@ -791,7 +791,7 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
     dadosPorPessoa[nome].entradas++;
     const s = p.status || 'Pendente';
     if (s === 'Concluído' || s === 'Devolvido') dadosPorPessoa[nome].saidas++;
-    else if (s === 'Em andamento') dadosPorPessoa[nome].andamento++;
+    if (s === 'Em andamento') dadosPorPessoa[nome].andamento++;
     else if (s === 'Em acompanhamento') dadosPorPessoa[nome].acomp++;
     else if (s === 'Aguardando CTIGI' || s === 'Aguardando SEFIN') dadosPorPessoa[nome].aguardando++;
     else if (s === 'Devolvido') dadosPorPessoa[nome].devolvido++;
