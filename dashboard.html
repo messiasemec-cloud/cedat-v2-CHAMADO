@@ -236,7 +236,7 @@
         <div class="scorecard-sub">concluídos + devolvidos</div>
       </div>
     </div>
-    <p style="font-size:11px;font-style:italic;color:#5a6472;margin-top:-8px;margin-bottom:12px;">* Processos devolvidos não são contabilizados nos totais acima.</p>
+    <p style="font-size:11px;font-style:italic;color:#5a6472;margin-top:-8px;margin-bottom:12px;">* Processos devolvidos são contabilizados nas saídas mas monitorados separadamente.</p>
     <div id="areaTipoGraficos"></div>
   </div>
 
@@ -1150,11 +1150,12 @@ function renderPessoa() {
   const acomp = lista.filter(p => p.status === 'Em acompanhamento').length;
   const agCtigi = lista.filter(p => p.status === 'Aguardando CTIGI').length;
   const agSefin = lista.filter(p => p.status === 'Aguardando SEFIN').length;
+  const devolvido = lista.filter(p => p.status === 'Devolvido').length;
 
   document.getElementById('pessoaEntradas').textContent = lista.length;
   document.getElementById('pessoaAberto').textContent = andamento + pendente + acomp;
   document.getElementById('pessoaTerceiros').textContent = agCtigi + agSefin;
-  document.getElementById('pessoaSaidas').textContent = concluido + (lista.filter(p => p.status === 'Devolvido').length);
+  document.getElementById('pessoaSaidas').textContent = concluido + devolvido;
 
   const titulo = tipoSel === 'Todos'
     ? `${pessoa} — todos os tipos`
@@ -1196,8 +1197,8 @@ function renderPessoa() {
   charts['chartDiscoPessoa'] = new Chart(ctx, {
     type: 'doughnut',
     data: {
-      labels: ['Concluído', 'Em andamento', 'Aguardando início', 'Em acompanhamento', 'Ag. CTIGI', 'Ag. SEFIN'].filter((l,i) => [concluido,andamento,pendente,acomp,agCtigi,agSefin][i] > 0),
-      datasets: [{ data: [concluido,andamento,pendente,acomp,agCtigi,agSefin].filter(v => v > 0), backgroundColor: ['#2e7d32','#f9a825','#c62828','#0277bd','#7b3fa0','#9c5fb5'].filter((_,i) => [concluido,andamento,pendente,acomp,agCtigi,agSefin][i] > 0), borderWidth: 0 }]
+      labels: ['Concluído', 'Em andamento', 'Aguardando início', 'Em acompanhamento', 'Ag. CTIGI', 'Ag. SEFIN', 'Devolvido'].filter((l,i) => [concluido,andamento,pendente,acomp,agCtigi,agSefin,devolvido][i] > 0),
+      datasets: [{ data: [concluido,andamento,pendente,acomp,agCtigi,agSefin,devolvido].filter(v => v > 0), backgroundColor: ['#2e7d32','#f9a825','#c62828','#0277bd','#7b3fa0','#9c5fb5','#888'].filter((_,i) => [concluido,andamento,pendente,acomp,agCtigi,agSefin,devolvido][i] > 0), borderWidth: 0 }]
     },
     options: {
       responsive: true,
