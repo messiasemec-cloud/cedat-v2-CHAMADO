@@ -125,10 +125,10 @@
       <div class="scorecard">
         <div class="scorecard-label">Total de saídas</div>
         <div class="scorecard-valor verde" id="totalSaidas">—</div>
-        <div class="scorecard-sub">processos concluídos</div>
+        <div class="scorecard-sub">concluídos + devolvidos</div>
       </div>
     </div>
-    <p style="font-size:11px;font-style:italic;color:#5a6472;margin-top:-8px;margin-bottom:12px;">* Processos devolvidos não são contabilizados nos totais acima.</p>
+    <p style="font-size:11px;font-style:italic;color:#5a6472;margin-top:-8px;margin-bottom:12px;">* Processos devolvidos são contabilizados nas saídas mas monitorados separadamente.</p>
     <div class="graficos" style="margin-top:0;">
       <div class="grafico-card">
         <div class="grafico-titulo">Distribuição por status (%)</div>
@@ -178,7 +178,7 @@
         <div class="scorecard-valor verde" id="pessoaSaidas">—</div>
       </div>
     </div>
-    <p style="font-size:11px;font-style:italic;color:#5a6472;margin-top:-8px;margin-bottom:12px;">* Processos devolvidos não são contabilizados nos totais acima.</p>
+    <p style="font-size:11px;font-style:italic;color:#5a6472;margin-top:-8px;margin-bottom:12px;">* Processos devolvidos são contabilizados nas saídas mas monitorados separadamente.</p>
     <div class="graficos" style="margin-top:1rem;">
       <div class="grafico-card full">
         <div class="grafico-titulo" id="tituloDiscoPessoa">Distribuição por status</div>
@@ -191,7 +191,7 @@
         <div class="grafico-titulo">Entradas e saídas por tipo</div>
         <div class="grafico-wrap" style="height:320px;"><canvas id="chartBarrasTipoPessoa"></canvas></div>
         <p style="font-style:italic;font-size:11px;color:#5a6472;margin-top:8px;padding:0 8px;">
-          * Entradas = total de processos recebidos (visualizados + não visualizados). Saídas = processos concluídos.
+          * Entradas = total de processos recebidos. Saídas = processos concluídos + devolvidos.
         </p>
       </div>
     </div>
@@ -233,7 +233,7 @@
       <div class="scorecard">
         <div class="scorecard-label">Saídas</div>
         <div class="scorecard-valor verde" id="tipoSaidas">—</div>
-        <div class="scorecard-sub">processos concluídos</div>
+        <div class="scorecard-sub">concluídos + devolvidos</div>
       </div>
     </div>
     <p style="font-size:11px;font-style:italic;color:#5a6472;margin-top:-8px;margin-bottom:12px;">* Processos devolvidos não são contabilizados nos totais acima.</p>
@@ -516,7 +516,7 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
 
   // Totais gerais
   const totEntradas = listaSemana.length;
-  const totSaidas = listaSemana.filter(p => p.status === 'Concluído').length;
+  const totSaidas = listaSemana.filter(p => p.status === 'Concluído' || p.status === 'Devolvido').length;
   const totAberto = listaSemana.filter(p => ['Pendente','Em andamento','Em acompanhamento'].includes(p.status)).length;
   const totTerceiros = listaSemana.filter(p => ['Aguardando CTIGI','Aguardando SEFIN'].includes(p.status)).length;
 
@@ -525,7 +525,7 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
     { label: 'Total de Entradas',  sublabel: 'processos cadastrados',     valor: totEntradas,   cor: AZUL },
     { label: 'Aguardando Início',  sublabel: 'pendentes + em andamento',  valor: totAberto,     cor: LARANJA },
     { label: 'Com Terceiros',      sublabel: 'aguardando CTIGI / SEFIN',  valor: totTerceiros,  cor: [123,63,160] },
-    { label: 'Total de Saídas',    sublabel: 'processos concluídos',      valor: totSaidas,     cor: VERDE },
+    { label: 'Total de Saídas',    sublabel: 'concluídos + devolvidos',      valor: totSaidas,     cor: VERDE },
   ];
   const cW = (pW - mL - mR - 9) / 4;
   cards.forEach((c, i) => {
@@ -553,7 +553,7 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
   doc.setFont('helvetica', 'italic');
   doc.setFontSize(7);
   doc.setTextColor(...CINZA);
-  doc.text('* Processos devolvidos não são contabilizados nos totais acima.', mL, y);
+  doc.text('* Processos devolvidos são contabilizados nas saídas mas monitorados separadamente.', mL, y);
   y += 7;
 
   // ── GRÁFICOS: PIZZA + BARRAS ─────────────────────────────
@@ -666,7 +666,7 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
     if (!p.destinatario) return;
     if (!pessoas[p.destinatario]) pessoas[p.destinatario] = { entradas: 0, saidas: 0 };
     pessoas[p.destinatario].entradas++;
-    if (p.status === 'Concluído') pessoas[p.destinatario].saidas++;
+    if (p.status === 'Concluído' || p.status === 'Devolvido') pessoas[p.destinatario].saidas++;
   });
 
   // Todos os colaboradores do sistema (mesmo sem movimentação na semana)
@@ -790,7 +790,7 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
     if (!dadosPorPessoa[nome]) dadosPorPessoa[nome] = { entradas:0, andamento:0, aguardando:0, acomp:0, saidas:0, devolvido:0 };
     dadosPorPessoa[nome].entradas++;
     const s = p.status || 'Pendente';
-    if (s === 'Concluído') dadosPorPessoa[nome].saidas++;
+    if (s === 'Concluído' || s === 'Devolvido') dadosPorPessoa[nome].saidas++;
     else if (s === 'Em andamento') dadosPorPessoa[nome].andamento++;
     else if (s === 'Em acompanhamento') dadosPorPessoa[nome].acomp++;
     else if (s === 'Aguardando CTIGI' || s === 'Aguardando SEFIN') dadosPorPessoa[nome].aguardando++;
@@ -855,7 +855,7 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
       // Scorecards (4 cards)
       const scCards = [
         { label: 'Entradas',   valor: d.entradas,  cor: AZUL },
-        { label: 'Em aberto',  valor: d.entradas - d.saidas - (d.devolvido||0), cor: LARANJA },
+        { label: 'Em aberto',  valor: d.entradas - d.saidas, cor: LARANJA },
         { label: 'C/ terceiros', valor: d.aguardando, cor: [123,63,160] },
         { label: 'Saídas',     valor: d.saidas,    cor: VERDE },
       ];
@@ -947,7 +947,7 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
       doc.setFontSize(7);
       doc.setTextColor(...CINZA);
       if (d.devolvido > 0) {
-        doc.text('* Processos devolvidos não são contabilizados nos totais acima.', legX, notaY);
+        doc.text('* Processos devolvidos são contabilizados nas saídas mas monitorados separadamente.', legX, notaY);
         notaY += 4;
       }
       if (d.acomp > 0) {
@@ -1094,7 +1094,7 @@ function renderGeral() {
   const lista = filtrarPorPeriodo(todosProcessos, periodoGeral, mesSelecionadoGeral);
   document.getElementById('totalEntradas').textContent = lista.length;
   document.getElementById('totalTerceiros').textContent = lista.filter(p => (p.status||'') === 'Aguardando CTIGI' || (p.status||'') === 'Aguardando SEFIN').length;
-  document.getElementById('totalSaidas').textContent = lista.filter(p => (p.status||'') === 'Concluído').length;
+  document.getElementById('totalSaidas').textContent = lista.filter(p => (p.status||'') === 'Concluído' || (p.status||'') === 'Devolvido').length;
   document.getElementById('totalAberto').textContent = lista.filter(p => { const s = p.status||'Pendente'; return s === 'Pendente' || s === 'Em andamento' || s === 'Em acompanhamento'; }).length;
 
   const statusList = ['Aguardando início', 'Em andamento', 'Em acompanhamento', 'Ag. CTIGI', 'Ag. SEFIN', 'Concluído', 'Devolvido'];
@@ -1154,7 +1154,7 @@ function renderPessoa() {
   document.getElementById('pessoaEntradas').textContent = lista.length;
   document.getElementById('pessoaAberto').textContent = andamento + pendente + acomp;
   document.getElementById('pessoaTerceiros').textContent = agCtigi + agSefin;
-  document.getElementById('pessoaSaidas').textContent = concluido;
+  document.getElementById('pessoaSaidas').textContent = concluido + (lista.filter(p => p.status === 'Devolvido').length);
 
   const titulo = tipoSel === 'Todos'
     ? `${pessoa} — todos os tipos`
