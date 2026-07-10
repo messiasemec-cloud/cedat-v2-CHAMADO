@@ -1153,15 +1153,15 @@ function renderPessoa() {
     if (tipoSel !== 'Todos' && p.tipo !== tipoSel) return false;
     const sConcluido = p.status === 'Concluído' || p.status === 'Devolvido';
     if (!sConcluido) return false;
-    // Usar dataConclusao ou dataDevolucao como referência
     const dataRef = parseBR(p.dataConclusao) || parseBR(p.dataDevolucao);
     if (!dataRef) return false;
     if (periodoPessoa === 'semana') return dataRef >= inicio;
-    if (periodoPessoa === 'mes' && mesAtual) {
-      return dataRef.getMonth() + 1 === parseInt(mesAtual.split('-')[1]) &&
-             dataRef.getFullYear() === parseInt(mesAtual.split('-')[0]);
+    if (periodoPessoa === 'mes') {
+      const mes = mesAtual || `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
+      return dataRef.getMonth() + 1 === parseInt(mes.split('-')[1]) &&
+             dataRef.getFullYear() === parseInt(mes.split('-')[0]);
     }
-    return true; // Total
+    return true; // Total — sem filtro de período
   });
 
   const concluido = lista.filter(p => p.status === 'Concluído').length;
