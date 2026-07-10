@@ -1140,9 +1140,29 @@ function renderPessoa() {
   const tipoSel = document.getElementById('selectPessoaTipo').value;
   if (!pessoa) return;
 
+  // Entradas: processos que chegaram no período (filtro por dataEnvio)
   let lista = filtrarPorPeriodo(todosProcessos, periodoPessoa, mesSelecionadoPessoa);
   lista = lista.filter(p => p.destinatario === pessoa);
   if (tipoSel !== 'Todos') lista = lista.filter(p => p.tipo === tipoSel);
+
+  // Saídas: processos concluídos/devolvidos NO período (filtro por dataConclusao/dataDevolucao)
+  const inicio = periodoPessoa === 'semana' ? inicioSemana() : null;
+  const mesAtual = mesSelecionadoPessoa;
+  const listaSaidas = todosProcessos.filter(p => {
+    if (p.destinatario !== pessoa) return false;
+    if (tipoSel !== 'Todos' && p.tipo !== tipoSel) return false;
+    const sConcluido = p.status === 'Concluído' || p.status === 'Devolvido';
+    if (!sConcluido) return false;
+    // Usar dataConclusao ou dataDevolucao como referência
+    const dataRef = parseBR(p.dataConclusao) || parseBR(p.dataDevolucao);
+    if (!dataRef) return false;
+    if (periodoPessoa === 'semana') return dataRef >= inicio;
+    if (periodoPessoa === 'mes' && mesAtual) {
+      return dataRef.getMonth() + 1 === parseInt(mesAtual.split('-')[1]) &&
+             dataRef.getFullYear() === parseInt(mesAtual.split('-')[0]);
+    }
+    return true; // Total
+  });
 
   const concluido = lista.filter(p => p.status === 'Concluído').length;
   const andamento = lista.filter(p => p.status === 'Em andamento').length;
@@ -1155,7 +1175,7 @@ function renderPessoa() {
   document.getElementById('pessoaEntradas').textContent = lista.length;
   document.getElementById('pessoaAberto').textContent = andamento + pendente + acomp;
   document.getElementById('pessoaTerceiros').textContent = agCtigi + agSefin;
-  document.getElementById('pessoaSaidas').textContent = concluido + devolvido;
+  document.getElementById('pessoaSaidas').textContent = listaSaidas.length;
 
   const titulo = tipoSel === 'Todos'
     ? `${pessoa} — todos os tipos`
