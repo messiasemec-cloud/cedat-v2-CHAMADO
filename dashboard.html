@@ -1156,7 +1156,7 @@ function renderPessoa() {
     const dataRef = parseBR(p.dataConclusao) || parseBR(p.dataDevolucao);
     if (!dataRef) return false;
     if (periodoPessoa === 'semana') return dataRef >= inicio;
-    if (periodoPessoa === 'mes') {
+    if (periodoPessoa === 'mes' || periodoPessoa === 'mes_especifico') {
       const mes = mesAtual || `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
       return dataRef.getMonth() + 1 === parseInt(mes.split('-')[1]) &&
              dataRef.getFullYear() === parseInt(mes.split('-')[0]);
