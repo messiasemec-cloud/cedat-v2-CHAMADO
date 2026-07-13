@@ -516,7 +516,14 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
 
   // Totais gerais
   const totEntradas = listaSemana.length;
-  const totSaidas = listaSemana.filter(p => p.status === 'Concluído' || p.status === 'Devolvido').length;
+  // Saídas = concluídos/devolvidos com dataConclusao/dataDevolucao no período
+  const totSaidas = todosProcessos.filter(p => {
+    const sConcluido = p.status === 'Concluído' || p.status === 'Devolvido';
+    if (!sConcluido) return false;
+    const dataRef = parseBR(p.dataConclusao) || parseBR(p.dataDevolucao);
+    if (!dataRef) return false;
+    return dataRef >= inicioSem && dataRef < fimSem;
+  }).length;
   const totAberto = listaSemana.filter(p => ['Pendente','Em andamento','Em acompanhamento'].includes(p.status)).length;
   const totTerceiros = listaSemana.filter(p => ['Aguardando CTIGI','Aguardando SEFIN'].includes(p.status)).length;
 
@@ -666,7 +673,8 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
     if (!p.destinatario) return;
     if (!pessoas[p.destinatario]) pessoas[p.destinatario] = { entradas: 0, saidas: 0 };
     pessoas[p.destinatario].entradas++;
-    if (p.status === 'Concluído' || p.status === 'Devolvido') pessoas[p.destinatario].saidas++;
+    const dataRefR = parseBR(p.dataConclusao) || parseBR(p.dataDevolucao);
+    if ((p.status === 'Concluído' || p.status === 'Devolvido') && dataRefR && dataRefR >= inicioSem && dataRefR < fimSem) pessoas[p.destinatario].saidas++;
   });
 
   // Todos os colaboradores do sistema (mesmo sem movimentação na semana)
@@ -790,7 +798,8 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
     if (!dadosPorPessoa[nome]) dadosPorPessoa[nome] = { entradas:0, andamento:0, aguardando:0, acomp:0, saidas:0, devolvido:0 };
     dadosPorPessoa[nome].entradas++;
     const s = p.status || 'Pendente';
-    if (s === 'Concluído' || s === 'Devolvido') dadosPorPessoa[nome].saidas++;
+    const dataRefC = parseBR(p.dataConclusao) || parseBR(p.dataDevolucao);
+    if ((s === 'Concluído' || s === 'Devolvido') && dataRefC && dataRefC >= inicioSem && dataRefC < fimSem) dadosPorPessoa[nome].saidas++;
     if (s === 'Em andamento') dadosPorPessoa[nome].andamento++;
     else if (s === 'Em acompanhamento') dadosPorPessoa[nome].acomp++;
     else if (s === 'Aguardando CTIGI' || s === 'Aguardando SEFIN') dadosPorPessoa[nome].aguardando++;
