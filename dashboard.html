@@ -95,6 +95,7 @@
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <div class="btn-grupo">
           <button class="btn-filtro" onclick="filtrarGeral('semana',this)">Esta semana</button>
+          <button class="btn-filtro" onclick="filtrarGeral('semana_passada',this)">Semana passada</button>
           <select id="selectMesGeral" onchange="filtrarGeralMes(this.value)" style="padding:6px 12px;border:1.5px solid var(--cinza-borda);border-radius:20px;font-size:13px;font-family:'Source Sans 3',sans-serif;outline:none;cursor:pointer;">
             <option value="">Selecionar mês</option>
           </select>
@@ -153,6 +154,7 @@
         </select>
         <div class="btn-grupo">
           <button class="btn-filtro" onclick="filtrarPessoa('semana',this)">Esta semana</button>
+          <button class="btn-filtro" onclick="filtrarPessoa('semana_passada',this)">Semana passada</button>
           <select id="selectMes_pessoa" onchange="filtrarMesAba('pessoa', this.value)" style="padding:6px 12px;border:1.5px solid var(--cinza-borda);border-radius:20px;font-size:13px;font-family:'Source Sans 3',sans-serif;outline:none;cursor:pointer;">
             <option value="">Selecionar mês</option>
           </select>
@@ -207,6 +209,7 @@
         </select>
         <div class="btn-grupo">
           <button class="btn-filtro" onclick="filtrarTipo('semana',this)">Esta semana</button>
+          <button class="btn-filtro" onclick="filtrarTipo('semana_passada',this)">Semana passada</button>
           <select id="selectMes_tipo" onchange="filtrarMesAba('tipo', this.value)" style="padding:6px 12px;border:1.5px solid var(--cinza-borda);border-radius:20px;font-size:13px;font-family:'Source Sans 3',sans-serif;outline:none;cursor:pointer;">
             <option value="">Selecionar mês</option>
           </select>
@@ -284,6 +287,13 @@ function trocarAba(id, el) {
 }
 
 // ── PERÍODO ──────────────────────────────────────────
+function semanaPassada() {
+  const ini = inicioSemana();
+  const fim = new Date(ini);
+  ini.setDate(ini.getDate() - 7);
+  return { inicio: ini, fim: fim };
+}
+
 function inicioSemana() {
   // Semana CEDAT: sexta 12h até sexta 12h seguinte
   const agora = new Date();
@@ -316,6 +326,7 @@ function filtrarPorPeriodo(lista, periodo, mesSel) {
     const d = parseBR ? parseBR(p.dataEnvio) : new Date(p.dataEnvio);
     if (!d || isNaN(d)) return false;
     if (periodo === 'semana') return d >= inicioSemana();
+    if (periodo === 'semana_passada') { const sp = semanaPassada(); return d >= sp.inicio && d < sp.fim; }
     if (periodo === 'mes') return d.getMonth() === agora.getMonth() && d.getFullYear() === agora.getFullYear();
     if (periodo === 'mes_especifico' && mesSel) {
       const [ano, mes] = mesSel.split('-').map(Number);
@@ -1155,7 +1166,7 @@ function renderPessoa() {
   if (tipoSel !== 'Todos') lista = lista.filter(p => p.tipo === tipoSel);
 
   // Saídas: processos concluídos/devolvidos NO período (filtro por dataConclusao/dataDevolucao)
-  const inicio = periodoPessoa === 'semana' ? inicioSemana() : null;
+  const inicio = periodoPessoa === 'semana' ? inicioSemana() : periodoPessoa === 'semana_passada' ? semanaPassada().inicio : null;
   const mesAtual = mesSelecionadoPessoa;
   const listaSaidas = todosProcessos.filter(p => {
     if (p.destinatario !== pessoa) return false;
@@ -1165,6 +1176,7 @@ function renderPessoa() {
     const dataRef = parseBR(p.dataConclusao) || parseBR(p.dataDevolucao);
     if (!dataRef) return false;
     if (periodoPessoa === 'semana') return dataRef >= inicio;
+    if (periodoPessoa === 'semana_passada') { const sp2 = semanaPassada(); return dataRef >= sp2.inicio && dataRef < sp2.fim; }
     if (periodoPessoa === 'mes' || periodoPessoa === 'mes_especifico') {
       const mes = mesAtual || `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
       return dataRef.getMonth() + 1 === parseInt(mes.split('-')[1]) &&
