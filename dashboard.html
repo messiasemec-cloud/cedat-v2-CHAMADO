@@ -54,7 +54,7 @@
     select{padding:8px 14px;border:1.5px solid var(--cinza-borda);border-radius:var(--radius);font-size:14px;font-family:'Source Sans 3',sans-serif;color:var(--texto);background:var(--branco);outline:none;cursor:pointer}
     select:focus{border-color:var(--verde)}
     .btn-grupo{display:flex;gap:6px;flex-wrap:wrap}
-    .btn-filtro{padding:7px 16px;border-radius:20px;font-size:13px;font-family:'Source Sans 3',sans-serif;border:1.5px solid var(--cinza-borda);color:var(--texto-sec);cursor:pointer;background:var(--branco);transition:all 0.15s}
+    .btn-filtro{padding:5px 10px;border-radius:20px;font-size:12px;font-family:'Source Sans 3',sans-serif;border:1.5px solid var(--cinza-borda);color:var(--texto-sec);cursor:pointer;background:var(--branco);transition:all 0.15s}
     .btn-filtro:hover{border-color:var(--verde);color:var(--verde)}
     .btn-filtro.ativo{background:var(--verde);border-color:var(--verde);color:var(--branco);font-weight:600}
     .btn-atualizar{background:var(--verde);color:white;border:none;padding:8px 16px;border-radius:var(--radius);font-size:13px;font-weight:600;cursor:pointer;font-family:'Source Sans 3',sans-serif}
@@ -95,7 +95,7 @@
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
         <div class="btn-grupo">
           <button class="btn-filtro" onclick="filtrarGeral('semana',this)">Esta semana</button>
-          <button class="btn-filtro" onclick="filtrarGeral('semana_passada',this)">Semana passada</button>
+          <button class="btn-filtro" onclick="filtrarGeral('semana_passada',this)">Sem. passada</button>
           <select id="selectMesGeral" onchange="filtrarGeralMes(this.value)" style="padding:6px 12px;border:1.5px solid var(--cinza-borda);border-radius:20px;font-size:13px;font-family:'Source Sans 3',sans-serif;outline:none;cursor:pointer;">
             <option value="">Selecionar mês</option>
           </select>
@@ -154,7 +154,7 @@
         </select>
         <div class="btn-grupo">
           <button class="btn-filtro" onclick="filtrarPessoa('semana',this)">Esta semana</button>
-          <button class="btn-filtro" onclick="filtrarPessoa('semana_passada',this)">Semana passada</button>
+          <button class="btn-filtro" onclick="filtrarPessoa('semana_passada',this)">Sem. passada</button>
           <select id="selectMes_pessoa" onchange="filtrarMesAba('pessoa', this.value)" style="padding:6px 12px;border:1.5px solid var(--cinza-borda);border-radius:20px;font-size:13px;font-family:'Source Sans 3',sans-serif;outline:none;cursor:pointer;">
             <option value="">Selecionar mês</option>
           </select>
@@ -209,7 +209,7 @@
         </select>
         <div class="btn-grupo">
           <button class="btn-filtro" onclick="filtrarTipo('semana',this)">Esta semana</button>
-          <button class="btn-filtro" onclick="filtrarTipo('semana_passada',this)">Semana passada</button>
+          <button class="btn-filtro" onclick="filtrarTipo('semana_passada',this)">Sem. passada</button>
           <select id="selectMes_tipo" onchange="filtrarMesAba('tipo', this.value)" style="padding:6px 12px;border:1.5px solid var(--cinza-borda);border-radius:20px;font-size:13px;font-family:'Source Sans 3',sans-serif;outline:none;cursor:pointer;">
             <option value="">Selecionar mês</option>
           </select>
