@@ -680,10 +680,16 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
 
   // ── RANKING (barras horizontais) ─────────────────────────
   const pessoas = {};
+  // Entradas: processos que chegaram no período
   listaSemana.forEach(p => {
     if (!p.destinatario) return;
     if (!pessoas[p.destinatario]) pessoas[p.destinatario] = { entradas: 0, saidas: 0 };
     pessoas[p.destinatario].entradas++;
+  });
+  // Saídas: processos concluídos/devolvidos no período (independente de quando entraram)
+  todosProcessos.forEach(p => {
+    if (!p.destinatario) return;
+    if (!pessoas[p.destinatario]) pessoas[p.destinatario] = { entradas: 0, saidas: 0 };
     const dataRefR = parseBR(p.dataConclusao) || parseBR(p.dataDevolucao);
     if ((p.status === 'Concluído' || p.status === 'Devolvido') && dataRefR && dataRefR >= inicioSem && dataRefR < fimSem) pessoas[p.destinatario].saidas++;
   });
@@ -803,18 +809,28 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
   // ── PÁGINAS POR COLABORADOR ─────────────────────────────
   // Montar dados por colaborador
   const dadosPorPessoa = {};
+  // Entradas e status: processos que chegaram no período
   listaSemana.forEach(p => {
     const nome = p.destinatario;
     if (!nome) return;
     if (!dadosPorPessoa[nome]) dadosPorPessoa[nome] = { entradas:0, andamento:0, aguardando:0, acomp:0, saidas:0, devolvido:0 };
     dadosPorPessoa[nome].entradas++;
     const s = p.status || 'Pendente';
-    const dataRefC = parseBR(p.dataConclusao) || parseBR(p.dataDevolucao);
-    if ((s === 'Concluído' || s === 'Devolvido') && dataRefC && dataRefC >= inicioSem && dataRefC < fimSem) dadosPorPessoa[nome].saidas++;
     if (s === 'Em andamento') dadosPorPessoa[nome].andamento++;
     else if (s === 'Em acompanhamento') dadosPorPessoa[nome].acomp++;
     else if (s === 'Aguardando CTIGI' || s === 'Aguardando SEFIN') dadosPorPessoa[nome].aguardando++;
     else if (s === 'Devolvido') dadosPorPessoa[nome].devolvido++;
+  });
+  // Saídas: concluídos/devolvidos no período (independente de quando entraram)
+  todosProcessos.forEach(p => {
+    const nome = p.destinatario;
+    if (!nome) return;
+    if (!dadosPorPessoa[nome]) dadosPorPessoa[nome] = { entradas:0, andamento:0, aguardando:0, acomp:0, saidas:0, devolvido:0 };
+    const s = p.status || 'Pendente';
+    const dataRefC = parseBR(p.dataConclusao) || parseBR(p.dataDevolucao);
+    if ((s === 'Concluído' || s === 'Devolvido') && dataRefC && dataRefC >= inicioSem && dataRefC < fimSem) {
+      dadosPorPessoa[nome].saidas++;
+    }
   });
 
   // Ordenar por saídas decrescente
