@@ -319,6 +319,17 @@ function inicioSemana() {
   return sexta;
 }
 
+function filtrarPorData(data, periodo, mesSel) {
+  if (!data) return false;
+  if (periodo === 'semana') return data >= inicioSemana();
+  if (periodo === 'semana_passada') { const sp = semanaPassada(); return data >= sp.inicio && data < sp.fim; }
+  if (periodo === 'mes_especifico' && mesSel) {
+    const [ano, mes] = mesSel.split('-').map(Number);
+    return data.getFullYear() === ano && data.getMonth() + 1 === mes;
+  }
+  return true; // total
+}
+
 function filtrarPorPeriodo(lista, periodo, mesSel) {
   if (periodo === 'total') return lista;
   const agora = new Date();
@@ -1131,7 +1142,15 @@ function renderGeral() {
   const lista = filtrarPorPeriodo(todosProcessos, periodoGeral, mesSelecionadoGeral);
   document.getElementById('totalEntradas').textContent = lista.length;
   document.getElementById('totalTerceiros').textContent = lista.filter(p => (p.status||'') === 'Aguardando CTIGI' || (p.status||'') === 'Aguardando SEFIN').length;
-  document.getElementById('totalSaidas').textContent = lista.filter(p => (p.status||'') === 'Concluído' || (p.status||'') === 'Devolvido').length;
+  // Saídas: filtrar por dataConclusao/dataDevolucao no período (não por dataEnvio)
+  const listaSaidasGeral = todosProcessos.filter(p => {
+    const s = p.status || '';
+    if (s !== 'Concluído' && s !== 'Devolvido') return false;
+    const dataRef = parseBR(p.dataConclusao) || parseBR(p.dataDevolucao);
+    if (!dataRef) return false;
+    return filtrarPorData(dataRef, periodoGeral, mesSelecionadoGeral);
+  });
+  document.getElementById('totalSaidas').textContent = listaSaidasGeral.length;
   document.getElementById('totalAberto').textContent = lista.filter(p => { const s = p.status||'Pendente'; return s === 'Pendente' || s === 'Em andamento' || s === 'Em acompanhamento'; }).length;
 
   const statusList = ['Aguardando início', 'Em andamento', 'Em acompanhamento', 'Ag. CTIGI', 'Ag. SEFIN', 'Concluído', 'Devolvido'];
@@ -1191,15 +1210,7 @@ function renderPessoa() {
     const sConcluido = p.status === 'Concluído' || p.status === 'Devolvido';
     if (!sConcluido) return false;
     const dataRef = parseBR(p.dataConclusao) || parseBR(p.dataDevolucao);
-    if (!dataRef) return false;
-    if (periodoPessoa === 'semana') return dataRef >= inicio;
-    if (periodoPessoa === 'semana_passada') { const sp2 = semanaPassada(); return dataRef >= sp2.inicio && dataRef < sp2.fim; }
-    if (periodoPessoa === 'mes' || periodoPessoa === 'mes_especifico') {
-      const mes = mesAtual || `${new Date().getFullYear()}-${String(new Date().getMonth()+1).padStart(2,'0')}`;
-      return dataRef.getMonth() + 1 === parseInt(mes.split('-')[1]) &&
-             dataRef.getFullYear() === parseInt(mes.split('-')[0]);
-    }
-    return true; // Total — sem filtro de período
+    return filtrarPorData(dataRef, periodoPessoa, mesSelecionadoPessoa);
   });
 
   const concluido = lista.filter(p => p.status === 'Concluído').length;
@@ -1230,7 +1241,12 @@ function renderPessoa() {
   const listaTodos = filtrarPorPeriodo(todosProcessos.filter(p => p.destinatario === pessoa), periodoPessoa, mesSelecionadoPessoa);
   const tiposPessoa = [...new Set(listaTodos.map(p => p.tipo).filter(Boolean))].sort();
   const entradasPorTipo = tiposPessoa.map(t => listaTodos.filter(p => p.tipo === t).length);
-  const saidasPorTipo = tiposPessoa.map(t => listaTodos.filter(p => p.tipo === t && p.status === 'Concluído').length);
+  const saidasPorTipo = tiposPessoa.map(t => todosProcessos.filter(p => {
+    if (p.tipo !== t || p.destinatario !== pessoa) return false;
+    if (p.status !== 'Concluído' && p.status !== 'Devolvido') return false;
+    const d = parseBR(p.dataConclusao) || parseBR(p.dataDevolucao);
+    return filtrarPorData(d, periodoPessoa, mesSelecionadoPessoa);
+  }).length);
 
   const ctxBarras = document.getElementById('chartBarrasTipoPessoa').getContext('2d');
   charts['chartBarrasTipoPessoa'] = new Chart(ctxBarras, {
@@ -1303,7 +1319,14 @@ function renderTipo() {
   const listaFiltradaScore = todos ? lista : lista.filter(p => p.tipo === tipoSel);
   document.getElementById('tipoEntradas').textContent = listaFiltradaScore.length;
   document.getElementById('tipoTerceiros').textContent = listaFiltradaScore.filter(p => p.status === 'Aguardando CTIGI' || p.status === 'Aguardando SEFIN').length;
-  document.getElementById('tipoSaidas').textContent = listaFiltradaScore.filter(p => p.status === 'Concluído').length;
+  // Saídas: filtrar por dataConclusao no período
+  const listaSaidasTipo = todosProcessos.filter(p => {
+    if (p.status !== 'Concluído' && p.status !== 'Devolvido') return false;
+    if (!todos && p.tipo !== tipoSel) return false;
+    const dataRef = parseBR(p.dataConclusao) || parseBR(p.dataDevolucao);
+    return filtrarPorData(dataRef, periodoTipo, mesSelecionadoTipo);
+  });
+  document.getElementById('tipoSaidas').textContent = listaSaidasTipo.length;
   document.getElementById('tipoAberto').textContent = listaFiltradaScore.filter(p => { const s = p.status||'Pendente'; return s === 'Pendente' || s === 'Em andamento'; }).length;
 
   // Destruir gráficos antigos
@@ -1327,7 +1350,11 @@ function renderTipo() {
       area.appendChild(div);
 
       const entradas = grupo.map(t => lista.filter(p => p.tipo === t).length);
-      const saidas = grupo.map(t => lista.filter(p => p.tipo === t && p.status === 'Concluído').length);
+      const saidas = grupo.map(t => todosProcessos.filter(p => {
+        if (p.tipo !== t || (p.status !== 'Concluído' && p.status !== 'Devolvido')) return false;
+        const d = parseBR(p.dataConclusao) || parseBR(p.dataDevolucao);
+        return filtrarPorData(d, periodoTipo, mesSelecionadoTipo);
+      }).length);
       const ctx = document.getElementById(id).getContext('2d');
       charts[id] = new Chart(ctx, {
         type: 'bar',
@@ -1360,7 +1387,11 @@ function renderTipo() {
   // Barras — tipo selecionado, entradas vs saídas simples
   const listaFiltrada = tipoSel ? lista.filter(p => p.tipo === tipoSel) : lista;
   const entradas = listaFiltrada.length;
-  const saidas = listaFiltrada.filter(p => p.status === 'Concluído').length;
+  const saidas = todosProcessos.filter(p => {
+    if (p.tipo !== tipoSel || (p.status !== 'Concluído' && p.status !== 'Devolvido')) return false;
+    const d = parseBR(p.dataConclusao) || parseBR(p.dataDevolucao);
+    return filtrarPorData(d, periodoTipo, mesSelecionadoTipo);
+  }).length;
   criarBarras('chartTipoBarras', ['Entradas', 'Saídas'], [
     { data: [entradas, saidas], backgroundColor: ['#185FA5', '#0a8a7a'], borderRadius: 4 }
   ]);
