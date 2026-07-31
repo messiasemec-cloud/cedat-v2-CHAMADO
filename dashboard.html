@@ -589,7 +589,18 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
   const statusLabels = ['Aguardando início','Em andamento','Em acompanhamento','Ag. CTIGI','Ag. SEFIN','Concluído','Devolvido'];
   const statusReal   = ['Pendente','Em andamento','Em acompanhamento','Aguardando CTIGI','Aguardando SEFIN','Concluído','Devolvido'];
   const coresStatus  = [[198,40,40],[249,168,37],[2,119,189],[123,63,160],[156,95,181],[46,125,50],[136,136,136]];
-  const counts = statusReal.map(s => listaSemana.filter(p => (p.status||'Pendente') === s).length);
+  // Para Concluído e Devolvido usar dataConclusao/dataDevolucao; demais usar dataEnvio (listaSemana)
+  const counts = statusReal.map(s => {
+    if (s === 'Concluído' || s === 'Devolvido') {
+      return todosProcessos.filter(p => {
+        if ((p.status||'Pendente') !== s) return false;
+        const dataRef = s === 'Concluído' ? parseBR(p.dataConclusao) : parseBR(p.dataDevolucao);
+        if (!dataRef) return false;
+        return dataRef >= inicioSem && dataRef < fimSem;
+      }).length;
+    }
+    return listaSemana.filter(p => (p.status||'Pendente') === s).length;
+  });
   const totalStatus = counts.reduce((a,b) => a+b, 0);
 
   // Pizza (lado esquerdo)
