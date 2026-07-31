@@ -1156,7 +1156,18 @@ function renderGeral() {
   const statusList = ['Aguardando início', 'Em andamento', 'Em acompanhamento', 'Ag. CTIGI', 'Ag. SEFIN', 'Concluído', 'Devolvido'];
   const cores = ['#c62828','#f9a825','#0277bd','#7b3fa0','#9c5fb5','#2e7d32','#888'];
   const statusReal = ['Pendente', 'Em andamento', 'Em acompanhamento', 'Aguardando CTIGI', 'Aguardando SEFIN', 'Concluído', 'Devolvido'];
-  const counts = statusList.map((s,i) => lista.filter(p => (p.status||'Pendente') === statusReal[i]).length);
+  // Para Concluído e Devolvido, usar dataConclusao/dataDevolucao como referência
+  const counts = statusList.map((s,i) => {
+    const sr = statusReal[i];
+    if (sr === 'Concluído' || sr === 'Devolvido') {
+      return todosProcessos.filter(p => {
+        if ((p.status||'Pendente') !== sr) return false;
+        const dataRef = sr === 'Concluído' ? parseBR(p.dataConclusao) : parseBR(p.dataDevolucao);
+        return filtrarPorData(dataRef, periodoGeral, mesSelecionadoGeral);
+      }).length;
+    }
+    return lista.filter(p => (p.status||'Pendente') === sr).length;
+  });
   criarRosca('chartStatusRosca', statusList, counts, cores);
   criarBarras('chartStatusBarras', statusList, [{
     data: counts, backgroundColor: cores, borderRadius: 4
