@@ -430,8 +430,47 @@
       }
     }
 
+    function mostrarModalEF() {
+      const modal = document.getElementById('modalEFExtinta');
+      modal.style.display = 'flex';
+      document.getElementById('btnEFSim').onclick = async () => {
+        modal.style.display = 'none';
+        await executarConclusao();
+        // Redirecionar para PROFAZ com número do processo
+        const numProc = encodeURIComponent(processoAtual ? String(processoAtual.processo || '') : '');
+        window.open('https://messiasemec-cloud.github.io/profaz-dist/avocar.html?proc_adm=' + numProc, '_blank');
+      };
+      document.getElementById('btnEFNao').onclick = async () => {
+        modal.style.display = 'none';
+        await executarConclusao();
+      };
+    }
+
+    async function executarConclusao() {
+      const agora = encodeURIComponent(new Date().toLocaleString('pt-BR'));
+      const url = SCRIPT_URL + '?aba=Entradas-v2&acao=concluir&linha=' + processoAtual.linha + '&data=' + agora;
+      try {
+        await fetch(url, { mode: 'no-cors' });
+        showFeedback('✓ Conclusão registrada com sucesso!', 'success');
+        document.getElementById('resultado').style.display = 'none';
+        document.getElementById('numProcesso').value = '';
+        processoAtual = null;
+      } catch(e) {
+        showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
+      }
+    }
+
     async function registrarAcao(acao) {
       if (!processoAtual) return;
+      // Interceptar conclusão de processos administrativos P ou GR
+      if (acao === 'concluir') {
+        const numProc = String(processoAtual.processo || '');
+        const ehAdm = /^P\d|^GR\d/i.test(numProc.trim());
+        if (ehAdm) {
+          mostrarModalEF();
+          return;
+        }
+      }
       const btns = document.querySelectorAll('.btn-iniciar, .btn-concluir, .btn-devolver');
       btns.forEach(b => { b.disabled = true; b.textContent = 'Registrando...'; });
 
@@ -680,6 +719,28 @@
     <button onclick="confirmarAvisoAdm()" style="width:100%;padding:12px;background:#0a8a7a;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">
       ✓ Entendido — Iniciar trabalho
     </button>
+  </div>
+</div>
+
+
+<!-- Modal pergunta EF extinta -->
+<div id="modalEFExtinta" style="display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.5);z-index:9999;align-items:center;justify-content:center;">
+  <div style="background:#fff;border-radius:12px;padding:28px 24px;width:460px;max-width:92vw;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
+      <span style="font-size:22px">⚖️</span>
+      <span style="font-weight:700;font-size:15px;color:#1a1f24;">Execução Fiscal vinculada?</span>
+    </div>
+    <p style="font-size:13px;color:#3a4250;line-height:1.7;margin-bottom:20px;">
+      Este processo <strong>cancelou/excluiu TODAS as CDAs</strong> de alguma Execução Fiscal vinculada, extinguindo-a por completo?
+    </p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button id="btnEFSim" style="width:100%;padding:12px;background:#0a8a7a;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">
+        ✓ Sim — houve extinção completa de EF
+      </button>
+      <button id="btnEFNao" style="width:100%;padding:12px;background:#f0f2f4;color:#3a4250;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">
+        Não — sem extinção ou cancelamento parcial
+      </button>
+    </div>
   </div>
 </div>
 
