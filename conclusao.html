@@ -431,14 +431,13 @@
     }
 
     function mostrarModalEF() {
+      // Capturar número AGORA, enquanto processoAtual ainda existe
+      const numProcAdm = encodeURIComponent(String(processoAtual ? processoAtual.processo || '' : ''));
       const modal = document.getElementById('modalEFExtinta');
       modal.style.display = 'flex';
       document.getElementById('btnEFSim').onclick = async () => {
         modal.style.display = 'none';
-        // Salvar número ANTES de executarConclusao zerar processoAtual
-        const numProcAdm = encodeURIComponent(String(processoAtual ? processoAtual.processo || '' : ''));
         await executarConclusao();
-        // Redirecionar para PROFAZ com número do processo
         window.open('https://messiasemec-cloud.github.io/profaz-dist/avocar.html?proc_adm=' + numProcAdm, '_blank');
       };
       document.getElementById('btnEFNao').onclick = async () => {
