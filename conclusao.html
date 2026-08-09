@@ -284,10 +284,16 @@
       if (status === 'Pendente') {
         const numProc = processoAtual ? String(processoAtual.processo || '') : '';
         const ehAdm = /^P\d|^GR\d/i.test(numProc.trim());
-        const onclickIniciar = ehAdm
-          ? "mostrarAvisoAdm()"
-          : "registrarAcao('iniciar')";
-        area.innerHTML = `<button class="btn btn-iniciar" onclick="${onclickIniciar}">▶ Registrar início do trabalho</button>` + btnDevolver;
+        area.innerHTML = `<button class="btn btn-iniciar" id="btnIniciarTrabalho">▶ Registrar início do trabalho</button>` + btnDevolver;
+        setTimeout(() => {
+          const btnI = document.getElementById('btnIniciarTrabalho');
+          if (btnI) {
+            btnI.addEventListener('click', () => {
+              if (ehAdm) mostrarAvisoAdm();
+              else registrarAcao('iniciar');
+            });
+          }
+        }, 50);
       } else if (status === 'Em andamento') {
         area.innerHTML = `
           <button class="btn btn-concluir" onclick="registrarAcao('concluir')">✓ Confirmar conclusão</button>
