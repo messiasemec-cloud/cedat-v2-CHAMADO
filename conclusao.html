@@ -459,20 +459,20 @@
 
       // Mostrar resultado
       if (nomeProcuradora) {
-        conteudo.innerHTML = \`
+        conteudo.innerHTML = `
           <p style="font-size:13px;color:#3a4250;line-height:1.7;margin-bottom:8px;">
             Você será direcionado para a página do PROFAZ para registrar as Execuções Fiscais vinculadas (se houver) e confirmar que tramitou este processo administrativo para:
           </p>
           <div style="background:#f0faf8;border-left:4px solid #0a8a7a;padding:12px 16px;border-radius:6px;margin:12px 0;">
-            <span style="font-size:15px;font-weight:700;color:#0a8a7a;">\${nomeProcuradora}</span>
+            <span style="font-size:15px;font-weight:700;color:#0a8a7a;">${nomeProcuradora}</span>
           </div>
-        \`;
+        `;
       } else {
-        conteudo.innerHTML = \`
+        conteudo.innerHTML = `
           <p style="font-size:13px;color:#3a4250;line-height:1.7;margin-bottom:8px;">
             Você será direcionado para a página do PROFAZ para registrar as Execuções Fiscais vinculadas (se houver) e confirmar a tramitação deste processo administrativo.
           </p>
-        \`;
+        `;
       }
 
       btnSim.style.display = 'block';
