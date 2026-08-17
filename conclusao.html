@@ -430,61 +430,20 @@
       }
     }
 
-    async function mostrarModalEF() {
+    function mostrarModalEF() {
       // Capturar número AGORA, enquanto processoAtual ainda existe
       const numProcAdm = encodeURIComponent(String(processoAtual ? processoAtual.processo || '' : ''));
       const modal = document.getElementById('modalEFExtinta');
-      const conteudo = document.getElementById('modalEFConteudo');
-      const btnSim = document.getElementById('btnEFSim');
-      const btnNao = document.getElementById('btnEFNao');
-
-      // Mostrar modal com loading
       modal.style.display = 'flex';
-      conteudo.innerHTML = '<p style="font-size:13px;color:#3a4250;line-height:1.7;text-align:center;padding:20px 0;">Consultando procuradora responsável...</p>';
-      btnSim.style.display = 'none';
-      btnNao.style.display = 'none';
 
-      // Consultar procuradora via Apps Script
-      let nomeProcuradora = '';
-      try {
-        const url = SCRIPT_URL + '?aba=Entradas-v2&acao=sugerir_proximo_adm';
-        const resp = await fetch(url);
-        const data = await resp.json();
-        if (data.status === 'ok') {
-          nomeProcuradora = data.destino;
-        }
-      } catch(e) {
-        nomeProcuradora = '';
-      }
-
-      // Mostrar resultado
-      if (nomeProcuradora) {
-        conteudo.innerHTML = `
-          <p style="font-size:13px;color:#3a4250;line-height:1.7;margin-bottom:8px;">
-            Você será direcionado para a página do PROFAZ para registrar as Execuções Fiscais vinculadas (se houver) e confirmar que tramitou este processo administrativo para:
-          </p>
-          <div style="background:#f0faf8;border-left:4px solid #0a8a7a;padding:12px 16px;border-radius:6px;margin:12px 0;">
-            <span style="font-size:15px;font-weight:700;color:#0a8a7a;">${nomeProcuradora}</span>
-          </div>
-        `;
-      } else {
-        conteudo.innerHTML = `
-          <p style="font-size:13px;color:#3a4250;line-height:1.7;margin-bottom:8px;">
-            Você será direcionado para a página do PROFAZ para registrar as Execuções Fiscais vinculadas (se houver) e confirmar a tramitação deste processo administrativo.
-          </p>
-        `;
-      }
-
-      btnSim.style.display = 'block';
-      btnNao.style.display = 'block';
-
-      btnSim.onclick = async () => {
+      document.getElementById('btnEFSim').onclick = async () => {
         modal.style.display = 'none';
         await executarConclusao();
         window.open('https://messiasemec-cloud.github.io/profaz-dist/avocar.html?proc_adm=' + numProcAdm, '_blank');
       };
-      btnNao.onclick = () => {
+      document.getElementById('btnEFNao').onclick = async () => {
         modal.style.display = 'none';
+        await executarConclusao();
       };
     }
 
@@ -770,19 +729,17 @@
   <div style="background:#fff;border-radius:12px;padding:28px 24px;width:460px;max-width:92vw;box-shadow:0 8px 32px rgba(0,0,0,0.2);">
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:16px;">
       <span style="font-size:22px">⚖️</span>
-      <span style="font-weight:700;font-size:15px;color:#1a1f24;">Registro no PROFAZ</span>
+      <span style="font-weight:700;font-size:15px;color:#1a1f24;">Tramitar para Procuradora?</span>
     </div>
-    <div id="modalEFConteudo">
-      <p style="font-size:13px;color:#3a4250;line-height:1.7;text-align:center;padding:20px 0;">
-        Consultando procuradora responsável...
-      </p>
-    </div>
-    <div style="display:flex;flex-direction:column;gap:10px;margin-top:16px;">
-      <button id="btnEFSim" style="display:none;width:100%;padding:12px;background:#0a8a7a;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">
-        ✓ Entendido — Ir para o PROFAZ
+    <p style="font-size:13px;color:#3a4250;line-height:1.7;margin-bottom:20px;">
+      Este processo precisa ser <strong>tramitado para uma Procuradora</strong>? (com ou sem Execução Fiscal vinculada)
+    </p>
+    <div style="display:flex;flex-direction:column;gap:10px;">
+      <button id="btnEFSim" style="width:100%;padding:12px;background:#0a8a7a;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">
+        ✓ Sim — registrar no PROFAZ
       </button>
-      <button id="btnEFNao" style="display:none;width:100%;padding:12px;background:#f0f2f4;color:#3a4250;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">
-        Cancelar
+      <button id="btnEFNao" style="width:100%;padding:12px;background:#f0f2f4;color:#3a4250;border:none;border-radius:8px;font-size:14px;font-weight:600;cursor:pointer;">
+        Não — resolvido inteiramente na CEDAT
       </button>
     </div>
   </div>
