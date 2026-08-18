@@ -410,7 +410,9 @@
         if (data.status === 'encontrado') {
           processoAtual = data;
           document.getElementById('r-processo').textContent = data.processo;
-          document.getElementById('r-data').textContent = formatarData(data.dataEntrada);
+          document.getElementById('r-data').textContent = data.dataEntrada
+            ? new Date(data.dataEntrada).toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric',timeZone:'America/Fortaleza'})
+            : '—';
           document.getElementById('r-tipo').textContent = data.tipo;
           document.getElementById('r-dest').textContent = data.destinatario;
           document.getElementById('r-inicio').textContent = data.dataInicio ? formatarData(data.dataInicio) : '—';
