@@ -410,11 +410,11 @@
         if (data.status === 'encontrado') {
           processoAtual = data;
           document.getElementById('r-processo').textContent = data.processo;
-          document.getElementById('r-data').textContent = data.dataEntrada;
+          document.getElementById('r-data').textContent = formatarData(data.dataEntrada);
           document.getElementById('r-tipo').textContent = data.tipo;
           document.getElementById('r-dest').textContent = data.destinatario;
-          document.getElementById('r-inicio').textContent = data.dataInicio || '—';
-          document.getElementById('r-conclusao').textContent = data.dataConclusao || '—';
+          document.getElementById('r-inicio').textContent = data.dataInicio ? formatarData(data.dataInicio) : '—';
+          document.getElementById('r-conclusao').textContent = data.dataConclusao ? formatarData(data.dataConclusao) : '—';
 
           const status = data.statusProcesso || 'Pendente';
           const temTerceiro = status === 'Aguardando CTIGI' || status === 'Aguardando SEFIN';
@@ -591,6 +591,16 @@
     function confirmarAvisoAdm() {
       document.getElementById('modalProcAdm').style.display = 'none';
       registrarAcao('iniciar');
+    }
+
+    function formatarData(str) {
+      if (!str) return '—';
+      const d = new Date(str);
+      if (isNaN(d)) return str;
+      return d.toLocaleDateString('pt-BR', {
+        day: '2-digit', month: '2-digit', year: 'numeric',
+        hour: '2-digit', minute: '2-digit', timeZone: 'America/Fortaleza'
+      });
     }
 
     document.getElementById('numProcesso').addEventListener('keypress', e => {
