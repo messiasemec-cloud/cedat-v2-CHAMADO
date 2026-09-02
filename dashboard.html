@@ -215,6 +215,11 @@
           </select>
           <button class="btn-filtro ativo" onclick="filtrarTipo('total',this)">Total</button>
         </div>
+        <div class="btn-grupo" style="margin-left:8px;">
+          <button class="btn-filtro ativo" id="btnOrdemAZ" onclick="mudarOrdemTipo('az',this)" title="Ordem alfabética">A→Z</button>
+          <button class="btn-filtro" id="btnOrdemDesc" onclick="mudarOrdemTipo('desc',this)" title="Maior quantidade">↓ Maior</button>
+          <button class="btn-filtro" id="btnOrdemAsc" onclick="mudarOrdemTipo('asc',this)" title="Menor quantidade">↑ Menor</button>
+        </div>
       </div>
     </div>
     <div class="scorecards" style="margin-bottom:1.5rem;grid-template-columns:repeat(4,1fr);gap:10px;">
@@ -1324,6 +1329,19 @@ function renderPessoa() {
 }
 
 // ── POR TIPO ─────────────────────────────────────────
+let ordemTipo = 'az'; // 'az', 'asc', 'desc'
+
+function mudarOrdemTipo(ordem, el) {
+  ordemTipo = ordem;
+  // Atualizar botões ativos
+  ['btnOrdemAZ','btnOrdemDesc','btnOrdemAsc'].forEach(id => {
+    const b = document.getElementById(id);
+    if (b) b.classList.remove('ativo');
+  });
+  if (el) el.classList.add('ativo');
+  renderTipo();
+}
+
 function filtrarTipo(p, el) {
   periodoTipo = p;
   mesSelecionadoTipo = null;
@@ -1359,7 +1377,17 @@ function renderTipo() {
 
   if (todos) {
     // Agrupar todos os tipos de 5 em 5
-    const tiposDisp = [...new Set(lista.map(p => p.tipo).filter(Boolean))].sort();
+    let tiposDisp = [...new Set(lista.map(p => p.tipo).filter(Boolean))];
+    // Ordenar conforme ordemTipo
+    if (ordemTipo === 'az') {
+      tiposDisp.sort((a, b) => a.localeCompare(b, 'pt-BR'));
+    } else {
+      tiposDisp.sort((a, b) => {
+        const totalA = lista.filter(p => p.tipo === a).length;
+        const totalB = lista.filter(p => p.tipo === b).length;
+        return ordemTipo === 'desc' ? totalB - totalA : totalA - totalB;
+      });
+    }
     const grupos = [];
     for (let i = 0; i < tiposDisp.length; i += 5) grupos.push(tiposDisp.slice(i, i+5));
 
