@@ -69,6 +69,7 @@
     @media (max-width: 500px) { .header-top { padding: 0.75rem 1rem; } .form-card { padding: 1.25rem; } .info-grid { grid-template-columns: 1fr; } }
     .btn-terceiro { background:#7b3fa0 !important;color:#fff !important;margin-top:8px; }
     .btn-acompanhamento { background:#0277bd !important;color:#fff !important;margin-top:8px; }
+    #aguarde-overlay { position:fixed;top:16px;left:50%;transform:translateX(-50%);background:#1a3a5c;color:#fff;padding:10px 22px;border-radius:20px;font-size:13px;font-weight:500;z-index:9999;box-shadow:0 2px 12px rgba(0,0,0,.25);display:none; }
     .btn-acompanhamento:hover { background:#01579b !important; }
     .badge-acompanhamento { display:inline-block;padding:4px 12px;border-radius:20px;font-size:12px;font-weight:600;background:#e1f5fe;color:#0277bd; }
     .btn-terceiro:hover { background:#5c2d7a !important; }
@@ -96,7 +97,8 @@
     <div class="header-stripe"></div>
   </div>
 
-  <div class="container">
+  <div id="aguarde-overlay">⏳ Aguarde, registrando...</div>
+<div class="container">
     <div class="form-card">
       <div class="form-title">Registrar andamento</div>
       <div class="form-sub">Busque o processo para registrar início ou conclusão</div>
@@ -422,8 +424,10 @@
           const status = data.statusProcesso || 'Pendente';
           const temTerceiro = status === 'Aguardando CTIGI' || status === 'Aguardando SEFIN';
           atualizarTracker(status, temTerceiro);
-          renderBotoes(status);          document.getElementById('resultado').style.display = 'block';
+          renderBotoes(status);          esconderAguarde();
+          document.getElementById('resultado').style.display = 'block';
         } else {
+          esconderAguarde();
           showFeedback('Processo não encontrado. Verifique o número.', 'error');
         }
       } catch(e) {
@@ -451,15 +455,18 @@
     }
 
     async function executarConclusao() {
+      mostrarAguarde();
       const agora = encodeURIComponent(new Date().toLocaleString('pt-BR'));
       const url = SCRIPT_URL + '?aba=Entradas-v2&acao=concluir&linha=' + processoAtual.linha + '&data=' + agora;
       try {
         await fetch(url, { mode: 'no-cors' });
+        esconderAguarde();
         showFeedback('✓ Conclusão registrada com sucesso!', 'success');
         document.getElementById('resultado').style.display = 'none';
         document.getElementById('numProcesso').value = '';
         processoAtual = null;
       } catch(e) {
+        esconderAguarde();
         showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
       }
     }
@@ -489,6 +496,7 @@
         document.getElementById('numProcesso').value = '';
         processoAtual = null;
       } catch(e) {
+        esconderAguarde();
         showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
         btns.forEach(b => b.disabled = false);
       }
@@ -567,6 +575,7 @@
         document.getElementById('numProcesso').value = '';
         processoAtual = null;
       } catch(e) {
+        esconderAguarde();
         showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
       }
     }
@@ -582,8 +591,16 @@
         document.getElementById('numProcesso').value = '';
         processoAtual = null;
       } catch(e) {
+        esconderAguarde();
         showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
       }
+    }
+
+    function mostrarAguarde() {
+      document.getElementById('aguarde-overlay').style.display = 'block';
+    }
+    function esconderAguarde() {
+      document.getElementById('aguarde-overlay').style.display = 'none';
     }
 
     function mostrarAvisoAdm() {
@@ -631,7 +648,8 @@
             document.getElementById('numProcesso').value = '';
             processoAtual = null;
           } catch(err) {
-            showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
+            esconderAguarde();
+        showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
           }
         })();
       }
@@ -665,7 +683,8 @@
             document.getElementById('numProcesso').value = '';
             processoAtual = null;
           } catch(err) {
-            showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
+            esconderAguarde();
+        showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
           }
         })();
       }
@@ -707,7 +726,8 @@
             document.getElementById('numProcesso').value = '';
             processoAtual = null;
           } catch(err) {
-            showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
+            esconderAguarde();
+        showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
           }
         })();
       }
