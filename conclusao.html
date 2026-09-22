@@ -473,6 +473,7 @@
 
     async function registrarAcao(acao) {
       if (!processoAtual) return;
+      mostrarAguarde();
       // Interceptar conclusão de processos administrativos P ou GR
       if (acao === 'concluir') {
         const numProc = String(processoAtual.processo || '');
@@ -517,6 +518,7 @@
         document.getElementById('btnTerceiro').textContent = '📤 Confirmar encaminhamento';
         return;
       }
+      mostrarAguarde();
       // Já aberto — confirmar se motivo preenchido
       const motivo = document.getElementById('modalMotivo').value.trim();
       if (!motivo) {
@@ -582,6 +584,7 @@
 
     async function registrarAcompanhamento() {
       if (!processoAtual) return;
+      mostrarAguarde();
       const agora = encodeURIComponent(new Date().toLocaleString('pt-BR'));
       const url = SCRIPT_URL + '?aba=Entradas-v2&acao=acompanhamento&linha=' + processoAtual.linha + '&data=' + agora;
       try {
