@@ -403,7 +403,7 @@
 
       const btn = document.getElementById('btnBuscar');
       btn.disabled = true; btn.textContent = 'Buscando...';
-      document.getElementById('resultado').style.display = 'none';
+      esconderAguarde(); document.getElementById('resultado').style.display = 'none';
 
       try {
         const url = SCRIPT_URL + '?aba=Entradas-v2&acao=buscar&processo=' + encodeURIComponent(normalizar(num));
@@ -461,7 +461,8 @@
         await fetch(url, { mode: 'no-cors' });
         esconderAguarde();
         showFeedback('✓ Conclusão registrada com sucesso!', 'success');
-        document.getElementById('resultado').style.display = 'none';
+        esconderAguarde();
+        esconderAguarde(); document.getElementById('resultado').style.display = 'none';
         document.getElementById('numProcesso').value = '';
         processoAtual = null;
       } catch(e) {
@@ -493,7 +494,7 @@
         await fetch(url, { mode: 'no-cors' });
         const msg = acao === 'iniciar' ? '▶ Início registrado com sucesso!' : acao === 'devolver' ? '↩ Processo devolvido com sucesso!' : '✓ Conclusão registrada com sucesso!';
         showFeedback(msg, 'success');
-        document.getElementById('resultado').style.display = 'none';
+        esconderAguarde(); document.getElementById('resultado').style.display = 'none';
         document.getElementById('numProcesso').value = '';
         processoAtual = null;
       } catch(e) {
@@ -504,7 +505,7 @@
     }
 
     function novaBusca() {
-      document.getElementById('resultado').style.display = 'none';
+      esconderAguarde(); document.getElementById('resultado').style.display = 'none';
       document.getElementById('numProcesso').value = '';
       document.getElementById('numProcesso').focus();
       processoAtual = null;
@@ -573,7 +574,7 @@
         await fetch(url, { mode: 'no-cors' });
         const p = document.getElementById('painelTerceiro'); if(p) p.classList.remove('aberto');
         showFeedback('📤 Encaminhado para ' + destino + ' com sucesso!', 'success');
-        document.getElementById('resultado').style.display = 'none';
+        esconderAguarde(); document.getElementById('resultado').style.display = 'none';
         document.getElementById('numProcesso').value = '';
         processoAtual = null;
       } catch(e) {
@@ -591,7 +592,7 @@
         await fetch(url, { mode: 'no-cors' });
         esconderAguarde();
         showFeedback('👁 Processo marcado como Em acompanhamento!', 'success');
-        document.getElementById('resultado').style.display = 'none';
+        esconderAguarde(); document.getElementById('resultado').style.display = 'none';
         document.getElementById('numProcesso').value = '';
         processoAtual = null;
       } catch(e) {
@@ -649,7 +650,7 @@
             await fetch(url, { mode: 'no-cors' });
             esconderAguarde();
         showFeedback('✏️ Assunto corrigido com sucesso!', 'success');
-            document.getElementById('resultado').style.display = 'none';
+            esconderAguarde(); document.getElementById('resultado').style.display = 'none';
             document.getElementById('numProcesso').value = '';
             processoAtual = null;
           } catch(err) {
@@ -684,7 +685,7 @@
           try {
             await fetch(url, { mode: 'no-cors' });
             showFeedback('📤 Encaminhado para CTIGI com sucesso!', 'success');
-            document.getElementById('resultado').style.display = 'none';
+            esconderAguarde(); document.getElementById('resultado').style.display = 'none';
             document.getElementById('numProcesso').value = '';
             processoAtual = null;
           } catch(err) {
@@ -728,7 +729,7 @@
             await fetch(url, { mode: 'no-cors' });
             esconderAguarde();
         showFeedback('↩ Processo devolvido com sucesso!', 'success');
-            document.getElementById('resultado').style.display = 'none';
+            esconderAguarde(); document.getElementById('resultado').style.display = 'none';
             document.getElementById('numProcesso').value = '';
             processoAtual = null;
           } catch(err) {
