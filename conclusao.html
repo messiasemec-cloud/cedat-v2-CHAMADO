@@ -455,7 +455,6 @@
     }
 
     async function executarConclusao() {
-      mostrarAguarde();
       const agora = encodeURIComponent(new Date().toLocaleString('pt-BR'));
       const url = SCRIPT_URL + '?aba=Entradas-v2&acao=concluir&linha=' + processoAtual.linha + '&data=' + agora;
       try {
@@ -466,7 +465,6 @@
         document.getElementById('numProcesso').value = '';
         processoAtual = null;
       } catch(e) {
-        esconderAguarde();
         esconderAguarde();
         showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
       }
@@ -499,7 +497,6 @@
         document.getElementById('numProcesso').value = '';
         processoAtual = null;
       } catch(e) {
-        esconderAguarde();
         esconderAguarde();
         showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
         btns.forEach(b => b.disabled = false);
@@ -581,7 +578,6 @@
         processoAtual = null;
       } catch(e) {
         esconderAguarde();
-        esconderAguarde();
         showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
       }
     }
@@ -599,7 +595,6 @@
         document.getElementById('numProcesso').value = '';
         processoAtual = null;
       } catch(e) {
-        esconderAguarde();
         esconderAguarde();
         showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
       }
@@ -659,7 +654,6 @@
             processoAtual = null;
           } catch(err) {
             esconderAguarde();
-        esconderAguarde();
         showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
           }
         })();
@@ -695,7 +689,6 @@
             processoAtual = null;
           } catch(err) {
             esconderAguarde();
-        esconderAguarde();
         showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
           }
         })();
@@ -740,7 +733,6 @@
             processoAtual = null;
           } catch(err) {
             esconderAguarde();
-        esconderAguarde();
         showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
           }
         })();
