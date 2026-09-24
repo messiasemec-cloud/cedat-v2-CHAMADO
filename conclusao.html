@@ -467,6 +467,7 @@
         processoAtual = null;
       } catch(e) {
         esconderAguarde();
+        esconderAguarde();
         showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
       }
     }
@@ -479,6 +480,7 @@
         const numProc = String(processoAtual.processo || '');
         const ehAdm = /^P\d|^GR\d/i.test(numProc.trim());
         if (ehAdm) {
+          esconderAguarde();
           mostrarModalEF();
           return;
         }
@@ -497,6 +499,7 @@
         document.getElementById('numProcesso').value = '';
         processoAtual = null;
       } catch(e) {
+        esconderAguarde();
         esconderAguarde();
         showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
         btns.forEach(b => b.disabled = false);
@@ -578,6 +581,7 @@
         processoAtual = null;
       } catch(e) {
         esconderAguarde();
+        esconderAguarde();
         showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
       }
     }
@@ -589,11 +593,13 @@
       const url = SCRIPT_URL + '?aba=Entradas-v2&acao=acompanhamento&linha=' + processoAtual.linha + '&data=' + agora;
       try {
         await fetch(url, { mode: 'no-cors' });
+        esconderAguarde();
         showFeedback('👁 Processo marcado como Em acompanhamento!', 'success');
         document.getElementById('resultado').style.display = 'none';
         document.getElementById('numProcesso').value = '';
         processoAtual = null;
       } catch(e) {
+        esconderAguarde();
         esconderAguarde();
         showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
       }
@@ -646,12 +652,14 @@
             + '&tipo=' + encodeURIComponent(novoTipo);
           try {
             await fetch(url, { mode: 'no-cors' });
-            showFeedback('✏️ Assunto corrigido com sucesso!', 'success');
+            esconderAguarde();
+        showFeedback('✏️ Assunto corrigido com sucesso!', 'success');
             document.getElementById('resultado').style.display = 'none';
             document.getElementById('numProcesso').value = '';
             processoAtual = null;
           } catch(err) {
             esconderAguarde();
+        esconderAguarde();
         showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
           }
         })();
@@ -687,6 +695,7 @@
             processoAtual = null;
           } catch(err) {
             esconderAguarde();
+        esconderAguarde();
         showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
           }
         })();
@@ -724,12 +733,14 @@
           const url = SCRIPT_URL + '?aba=Entradas-v2&acao=devolver&linha=' + processoAtual.linha + '&data=' + agora + '&motivo=' + motEnc;
           try {
             await fetch(url, { mode: 'no-cors' });
-            showFeedback('↩ Processo devolvido com sucesso!', 'success');
+            esconderAguarde();
+        showFeedback('↩ Processo devolvido com sucesso!', 'success');
             document.getElementById('resultado').style.display = 'none';
             document.getElementById('numProcesso').value = '';
             processoAtual = null;
           } catch(err) {
             esconderAguarde();
+        esconderAguarde();
         showFeedback('Erro ao registrar. Verifique a conexão.', 'error');
           }
         })();
