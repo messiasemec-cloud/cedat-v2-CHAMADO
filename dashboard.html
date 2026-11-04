@@ -721,13 +721,10 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
     if ((p.status === 'Concluído' || p.status === 'Devolvido') && dataRefR && dataRefR >= inicioSem && dataRefR < fimSem) pessoas[p.destinatario].saidas++;
   });
 
-  // Todos os colaboradores do sistema (mesmo sem movimentação na semana)
-  const todosDest = [...new Set(todosProcessos.map(p => p.destinatario).filter(Boolean))].sort();
-  todosDest.forEach(nome => {
-    if (!pessoas[nome]) pessoas[nome] = { entradas: 0, saidas: 0 };
-  });
-
+  // Fora do relatório PDF: quem não tem entradas no período e colaboradores excluídos
+  const EXCLUIR_PDF = ['Leonardo Araújo','Juliana Silva'];
   const ranking = Object.entries(pessoas)
+    .filter(([nome, d]) => d.entradas > 0 && !EXCLUIR_PDF.includes(nome))
     .map(([nome, d]) => ({ nome, ...d }))
     .sort((a, b) => b.saidas - a.saidas || b.entradas - a.entradas);
 
@@ -864,6 +861,7 @@ function gerarPDFSemanal(inicioParam, fimParam, tituloParam, mensal) {
 
   // Ordenar por saídas decrescente
   const pessoasOrdenadas = Object.entries(dadosPorPessoa)
+    .filter(([nome, d]) => d.entradas > 0 && !EXCLUIR_PDF.includes(nome))
     .sort((a,b) => b[1].saidas - a[1].saidas || b[1].entradas - a[1].entradas);
 
   // 3 colaboradores por página
